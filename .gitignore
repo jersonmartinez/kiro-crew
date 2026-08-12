@@ -3,4 +3,9 @@
 *.log
 projects/*
 !projects/.gitkeep
+
+# Local KiroCrew state
 .kiro/
+
+# Backups
+kirocrew-home-backup-*.tgz

@@ -8,10 +8,25 @@ services:
         mkdir -p /docker-bin/cli-plugins /docker-profile
         cp /usr/local/bin/docker /docker-bin/docker
         cp /usr/local/libexec/docker/cli-plugins/docker-compose /docker-bin/cli-plugins/docker-compose
-        printf '%s\n' 'export PATH="/opt/docker-cli:$${PATH}"' > /docker-profile/docker-cli.sh
+        printf '%s\n' 'export PATH="/opt/docker-cli:/opt/node-cli/bin:$${PATH}"' > /docker-profile/docker-cli.sh
     volumes:
       - docker-bin:/docker-bin
       - docker-profile:/docker-profile
+
+  node-cli:
+    image: node:20-slim
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        mkdir -p /node-bin/bin /node-bin/lib
+        cp /usr/local/bin/node /node-bin/bin/node
+        cp -a /usr/local/lib/node_modules /node-bin/lib/
+        ln -sf ../lib/node_modules/npm/bin/npm-cli.js /node-bin/bin/npm
+        ln -sf ../lib/node_modules/npm/bin/npx-cli.js /node-bin/bin/npx
+        ln -sf ../lib/node_modules/corepack/dist/corepack.js /node-bin/bin/corepack
+    volumes:
+      - node-bin:/node-bin
 
   make:
     profiles:
@@ -26,11 +41,12 @@ services:
     volumes:
       - .:/workspace
       - /var/run/docker.sock:/var/run/docker.sock
-      # Keep the project files available to Make; nested Compose receives the host path via PROJECTS_BASE.
       - type: bind
         source: ${PROJECTS_BASE}
         target: /workspace/projects
         read_only: true
+    networks:
+      - kirocrew-net
 
   kirocrew:
     image: ${KIROCREW_IMAGE}
@@ -41,24 +57,25 @@ services:
     depends_on:
       docker-cli:
         condition: service_completed_successfully
+      node-cli:
+        condition: service_completed_successfully
     ports:
       - "127.0.0.1:${DASHBOARD_PORT}:5476"
     environment:
       KIROCREW_BIND: 0.0.0.0
       TZ: ${TZ}
-      PATH: /opt/docker-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PATH: /opt/docker-cli:/opt/node-cli/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      NODE_PATH: /opt/node-cli/lib/node_modules
     volumes:
       - kirocrew-home:/home/kirocrew
       - docker-bin:/opt/docker-cli:ro
       - docker-bin:/usr/local/libexec/docker:ro
       - docker-profile:/etc/profile.d:ro
+      - node-bin:/opt/node-cli:ro
       - /var/run/docker.sock:/var/run/docker.sock
-      # The directory is available as /home/kirocrew/projects/<project-name>.
       - ${PROJECTS_BASE}:/home/kirocrew/projects
-      # For least-privilege access, replace the directory mount with explicit project binds.
     cap_add:
       - SYS_ADMIN
-    # Docker Desktop exposes the socket as root:root by default in WSL2.
     group_add:
       - "${DOCKER_SOCKET_GID:-0}"
     labels:
@@ -70,9 +87,17 @@ services:
       timeout: 10s
       retries: 3
       start_period: 15s
+    networks:
+      - kirocrew-net
+
+networks:
+  kirocrew-net:
+    name: kirocrew-net
+    driver: bridge
 
 volumes:
   kirocrew-home:
     name: kirocrew-home
   docker-bin:
   docker-profile:
+  node-bin:

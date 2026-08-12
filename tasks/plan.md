@@ -8,13 +8,17 @@ Crear un bootstrap público y reproducible para KiroCrew sobre Docker Desktop + 
 - Montar el CLI en `/opt/docker-cli` y el directorio de plugins en la ruta estándar, evitando ocultar el resto de `/usr/local/bin` de la imagen KiroCrew.
 - Mantener el dashboard publicado solo en `127.0.0.1`.
 - Usar el named volume `kirocrew-home` como memoria y estado persistente del agente.
+- Inyectar Node.js 20, npm, npx y corepack con un sidecar y volumen `node-bin`.
+- Crear la red administrada `kirocrew-net` para que stacks de proyectos puedan conectarse explícitamente.
 
 ## Task List
 - [x] Crear el Compose con persistencia, proyectos, socket, healthcheck y sidecar del CLI.
 - [x] Parametrizar entorno y documentar el flujo de operación.
 - [x] Eliminar rutas, nombres de proyectos y valores específicos del entorno del mantenedor.
 - [x] Añadir Makefile y helper para proyectos adicionales.
+- [x] Añadir targets para Node.js, backups y stacks de proyectos.
 - [x] Revisar seguridad, rutas WSL2 y comandos de validación.
+- [x] Verificar sidecars Docker/Node, red, backup y targets Make.
 
 ## Verification Checkpoint
 - `docker compose config` debe resolver el YAML sin errores.

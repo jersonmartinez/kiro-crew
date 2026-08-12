@@ -8,12 +8,15 @@ La configuración no contiene rutas ni nombres de proyectos específicos de ning
 
 - Imagen oficial `ghcr.io/kirodotdev/kirocrew:stable`.
 - Servicio init `docker-cli` basado en `docker:cli`.
+- Servicio init `node-cli` basado en `node:20-slim` (Node.js, npm, npx).
 - Docker CLI y el plugin Compose inyectados mediante el volumen `docker-bin`.
+- Node.js CLI inyectado mediante el volumen `node-bin`.
 - Docker CLI disponible también en shells interactivos/login mediante `/etc/profile.d`.
 - Estado persistente en el volumen nombrado `kirocrew-home`.
 - Proyectos disponibles en `/home/kirocrew/projects/<nombre>`.
 - Dashboard en `http://localhost:5476`, sin exposición en interfaces externas.
 - Capacidad `SYS_ADMIN` para el sandbox de Chromium/Playwright.
+- Red compartida `kirocrew-net` para comunicación con stacks de proyectos.
 - Makefile y helper para las operaciones habituales.
 - Servicio opcional `make` para ejecutar Make dentro de Docker sin instalarlo en el host.
 
@@ -65,6 +68,10 @@ Las rutas bajo `/mnt/c` suelen tener peor rendimiento de I/O que las rutas dentr
 | `make update` | Descarga la imagen configurada y recrea KiroCrew. |
 | `make docker-test` | Ejecuta `docker ps` dentro de KiroCrew. |
 | `make token` | Genera una URL autenticada para el dashboard. |
+| `make node-test` | Verifica Node.js y npm dentro de KiroCrew. |
+| `make backup` | Crea un backup timestamped del volumen `kirocrew-home`. |
+| `make project-up NAME=X` | Levanta el stack Docker de un proyecto montado. |
+| `make project-down NAME=X` | Detiene el stack Docker de un proyecto montado. |
 
 ### Usar Make sin instalarlo en el host
 
@@ -79,7 +86,11 @@ docker compose run --rm make shell
 docker compose run --rm make status
 docker compose run --rm make update
 docker compose run --rm make docker-test
+docker compose run --rm make node-test
 docker compose run --rm make token
+docker compose run --rm make backup
+docker compose run --rm make project-up NAME=demo-app
+docker compose run --rm make project-down NAME=demo-app
 ```
 
 Para que Compose pueda montar los proyectos cuando se ejecuta desde el contenedor de Make, `PROJECTS_BASE` debe ser una ruta absoluta visible para Docker Desktop/WSL2. El valor local recomendado ya cumple esto, por ejemplo `/mnt/c/Users/your-windows-user/Documents/Repositories`. El valor relativo `./projects` funciona para el stack normal; cámbialo a una ruta absoluta si usarás el servicio `make`.
@@ -121,6 +132,26 @@ Para generar un bloque para un proyecto concreto:
 
 El helper valida el nombre y que el directorio exista. Solo imprime el bloque; no modifica automáticamente el Compose para evitar cambios accidentales.
 
+### Stacks de proyectos y red compartida
+
+KiroCrew crea la red Docker `kirocrew-net`. Un stack de proyecto que necesite ser accesible desde KiroCrew debe declarar esa red como externa y conectar explícitamente los servicios necesarios:
+
+```yaml
+networks:
+  kirocrew-net:
+    external: true
+
+services:
+  app:
+    networks:
+      - default
+      - kirocrew-net
+```
+
+Levanta primero KiroCrew con `docker compose up -d` o `docker compose run --rm make up`. El nombre de la red debe coincidir exactamente; la red no conecta automáticamente todos los stacks.
+
+`make project-up NAME=demo-app` usa `PROJECT_PROFILE=dev` por defecto y busca `demo-app/infra/docker/compose.yml`. Puedes cambiar ambos valores en `.env`.
+
 ## Dashboard
 
 Abre [http://localhost:5476](http://localhost:5476). El puerto está limitado a `127.0.0.1`.
@@ -141,6 +172,17 @@ docker compose run --rm make token
 ```
 
 El token se imprime únicamente en la terminal; no lo guardes en Git ni lo compartas públicamente.
+
+## Node.js dentro de KiroCrew
+
+Node.js 20, npm, npx y corepack se inyectan mediante el servicio init `node-cli`, sin instalar Node.js en el host:
+
+```bash
+docker compose run --rm make node-test
+docker exec kirocrew bash -l -c 'node --version && npm --version && npx --version'
+```
+
+El volumen `node-bin` es una caché de herramientas; puedes recrearlo con `docker compose up -d --force-recreate` si cambias la versión o el contenido del sidecar.
 
 ## Persistencia y backup
 
@@ -216,7 +258,11 @@ Realiza primero el backup descrito arriba. Elimina o restaura el volumen únicam
 ├── projects/.gitkeep
 ├── scripts/add-project.sh
 ├── tasks/plan.md
-└── docs/decisions/ADR-001-docker-cli-sidecar.md
+└── docs/
+    └── decisions/
+        ├── ADR-001-docker-cli-sidecar.md
+        ├── ADR-002-node-cli-sidecar.md
+        └── ADR-003-shared-network.md
 ```
 
 ## Contribuir
