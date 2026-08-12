@@ -31,6 +31,17 @@ La configuración no contiene rutas ni nombres de proyectos específicos de ning
 
 El socket Docker otorga acceso equivalente a root sobre el Docker Engine del host. Por eso esta configuración está orientada a desarrollo local y no debe exponerse directamente a Internet.
 
+### Modelo de privilegios
+
+KiroCrew se ejecuta como el usuario no-root `kirocrew` (UID 1000). El Compose le concede únicamente los accesos necesarios para el flujo de desarrollo:
+
+- `SYS_ADMIN` para el sandbox de Chromium/Playwright.
+- El grupo del socket Docker mediante `DOCKER_SOCKET_GID`, para ejecutar Docker/Compose sin convertir el proceso en root.
+- Montajes de proyectos y estado con escritura, necesarios para modificar código y conservar memoria.
+- La red `kirocrew-net` para comunicarse con stacks de proyectos que se conecten explícitamente.
+
+No se usa `privileged: true`, `sudo`, `NET_ADMIN` ni un perfil seccomp deshabilitado. El target `access-test` permite comprobar estas capacidades sin elevar permisos adicionales.
+
 ## Setup rápido
 
 Desde WSL2, en el directorio del proyecto:
@@ -67,6 +78,7 @@ Las rutas bajo `/mnt/c` suelen tener peor rendimiento de I/O que las rutas dentr
 | `make status` | Muestra el estado de Compose y el health del contenedor. |
 | `make update` | Descarga la imagen configurada y recrea KiroCrew. |
 | `make docker-test` | Ejecuta `docker ps` dentro de KiroCrew. |
+| `make access-test` | Verifica usuario, escritura, Docker y Node dentro de KiroCrew. |
 | `make token` | Genera una URL autenticada para el dashboard. |
 | `make node-test` | Verifica Node.js y npm dentro de KiroCrew. |
 | `make backup` | Crea un backup timestamped del volumen `kirocrew-home`. |
@@ -87,6 +99,7 @@ docker compose run --rm make status
 docker compose run --rm make update
 docker compose run --rm make docker-test
 docker compose run --rm make node-test
+docker compose run --rm make access-test
 docker compose run --rm make token
 docker compose run --rm make backup
 docker compose run --rm make project-up NAME=demo-app

@@ -2,7 +2,7 @@
 
 PROJECT_PROFILE ?= dev
 
-.PHONY: up down restart logs shell status update docker-test node-test token backup project-up project-down
+.PHONY: up down restart logs shell status update docker-test node-test access-test token backup project-up project-down
 
 up:
 	docker compose up -d
@@ -35,6 +35,9 @@ node-test:
 	docker compose exec kirocrew node --version
 	docker compose exec kirocrew npm --version
 	docker compose exec kirocrew npx --version
+
+access-test:
+	docker compose exec kirocrew bash -l -c 'id; test -w /home/kirocrew/.kiro; test -w /home/kirocrew/projects; docker ps >/dev/null; node --version; echo access-check-ok'
 
 token:
 	docker compose exec kirocrew kirocrew token
