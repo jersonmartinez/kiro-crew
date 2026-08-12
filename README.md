@@ -63,6 +63,7 @@ Las rutas bajo `/mnt/c` suelen tener peor rendimiento de I/O que las rutas dentr
 | `make status` | Muestra el estado de Compose y el health del contenedor. |
 | `make update` | Descarga la imagen configurada y recrea KiroCrew. |
 | `make docker-test` | Ejecuta `docker ps` dentro de KiroCrew. |
+| `make token` | Genera una URL autenticada para el dashboard. |
 
 ### Usar Make sin instalarlo en el host
 
@@ -77,6 +78,7 @@ docker compose run --rm make shell
 docker compose run --rm make status
 docker compose run --rm make update
 docker compose run --rm make docker-test
+docker compose run --rm make token
 ```
 
 Para que Compose pueda montar los proyectos cuando se ejecuta desde el contenedor de Make, `PROJECTS_BASE` debe ser una ruta absoluta visible para Docker Desktop/WSL2. El valor local recomendado ya cumple esto, por ejemplo `/mnt/c/Users/your-windows-user/Documents/Repositories`. El valor relativo `./projects` funciona para el stack normal; cámbialo a una ruta absoluta si usarás el servicio `make`.
@@ -130,6 +132,14 @@ docker exec kirocrew docker compose version
 ```
 
 El primer comando debe mostrar los contenedores visibles para Docker Desktop. El segundo confirma que el plugin Compose fue inyectado por el servicio `docker-cli`.
+
+Para generar un enlace autenticado al dashboard:
+
+```bash
+docker compose run --rm make token
+```
+
+El token se imprime únicamente en la terminal; no lo guardes en Git ni lo compartas públicamente.
 
 ## Persistencia y backup
 

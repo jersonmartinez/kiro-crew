@@ -1,4 +1,4 @@
-.PHONY: up down restart logs shell status update docker-test
+.PHONY: up down restart logs shell status update docker-test token
 
 up:
 	docker compose up -d
@@ -26,3 +26,6 @@ update:
 
 docker-test:
 	docker compose exec kirocrew docker ps
+
+token:
+	docker compose exec kirocrew kirocrew token
