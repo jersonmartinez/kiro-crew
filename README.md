@@ -34,7 +34,7 @@ Desde WSL2, en el directorio del proyecto:
 ```bash
 cp .env.example .env
 # Edita PROJECTS_BASE si quieres usar repositorios fuera de ./projects
-make up
+docker compose run --rm make up
 ```
 
 El valor inicial `PROJECTS_BASE=./projects` permite arrancar el stack sin crear rutas externas. Para usar el filesystem nativo de WSL2, por ejemplo:
