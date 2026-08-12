@@ -11,6 +11,25 @@ services:
     volumes:
       - docker-bin:/docker-bin
 
+  make:
+    profiles:
+      - tools
+    build:
+      context: .
+      dockerfile: Dockerfile.make
+    working_dir: /workspace
+    environment:
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-kiro-crew}
+      PROJECTS_BASE: ${PROJECTS_BASE}
+    volumes:
+      - .:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Keep the project files available to Make; nested Compose receives the host path via PROJECTS_BASE.
+      - type: bind
+        source: ${PROJECTS_BASE}
+        target: /workspace/projects
+        read_only: true
+
   kirocrew:
     image: ${KIROCREW_IMAGE}
     hostname: kirocrew

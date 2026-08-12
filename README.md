@@ -14,13 +14,15 @@ La configuración no contiene rutas ni nombres de proyectos específicos de ning
 - Dashboard en `http://localhost:5476`, sin exposición en interfaces externas.
 - Capacidad `SYS_ADMIN` para el sandbox de Chromium/Playwright.
 - Makefile y helper para las operaciones habituales.
+- Servicio opcional `make` para ejecutar Make dentro de Docker sin instalarlo en el host.
 
 ## Prerrequisitos
 
 - Docker Desktop instalado y ejecutándose.
 - Integración WSL2 habilitada para tu distribución Linux.
 - WSL2 con `docker` y `docker compose` disponibles.
-- Bash y `make` disponibles en WSL2.
+- Bash disponible en WSL2 para los scripts auxiliares.
+- No es necesario instalar `make` en el host; el servicio `make` lo proporciona dentro de Docker.
 - Un directorio para los proyectos que KiroCrew podrá leer y modificar.
 
 El socket Docker otorga acceso equivalente a root sobre el Docker Engine del host. Por eso esta configuración está orientada a desarrollo local y no debe exponerse directamente a Internet.
@@ -61,6 +63,23 @@ Las rutas bajo `/mnt/c` suelen tener peor rendimiento de I/O que las rutas dentr
 | `make status` | Muestra el estado de Compose y el health del contenedor. |
 | `make update` | Descarga la imagen configurada y recrea KiroCrew. |
 | `make docker-test` | Ejecuta `docker ps` dentro de KiroCrew. |
+
+### Usar Make sin instalarlo en el host
+
+El servicio `make` se inicia bajo el perfil `tools` y usa una imagen basada en `docker:cli` con Make instalado. Ejecuta los targets con Docker CLI:
+
+```bash
+docker compose run --rm make up
+docker compose run --rm make down
+docker compose run --rm make restart
+docker compose run --rm make logs
+docker compose run --rm make shell
+docker compose run --rm make status
+docker compose run --rm make update
+docker compose run --rm make docker-test
+```
+
+Para que Compose pueda montar los proyectos cuando se ejecuta desde el contenedor de Make, `PROJECTS_BASE` debe ser una ruta absoluta visible para Docker Desktop/WSL2. El valor local recomendado ya cumple esto, por ejemplo `/mnt/c/Users/your-windows-user/Documents/Repositories`. El valor relativo `./projects` funciona para el stack normal; cámbialo a una ruta absoluta si usarás el servicio `make`.
 
 Equivalentes directos:
 
@@ -179,6 +198,8 @@ Realiza primero el backup descrito arriba. Elimina o restaura el volumen únicam
 ```text
 .
 ├── docker-compose.yml
+├── Dockerfile.make
+├── .dockerignore
 ├── .env.example
 ├── Makefile
 ├── projects/.gitkeep
@@ -193,5 +214,6 @@ Las configuraciones públicas deben usar placeholders y permanecer libres de rut
 
 ```bash
 docker compose config --quiet
+docker compose --profile tools build make
 git diff --check
 ```
