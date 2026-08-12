@@ -5,11 +5,13 @@ services:
       - /bin/sh
       - -ec
       - |
-        mkdir -p /docker-bin/cli-plugins
+        mkdir -p /docker-bin/cli-plugins /docker-profile
         cp /usr/local/bin/docker /docker-bin/docker
         cp /usr/local/libexec/docker/cli-plugins/docker-compose /docker-bin/cli-plugins/docker-compose
+        printf '%s\n' 'export PATH="/opt/docker-cli:$${PATH}"' > /docker-profile/docker-cli.sh
     volumes:
       - docker-bin:/docker-bin
+      - docker-profile:/docker-profile
 
   make:
     profiles:
@@ -49,6 +51,7 @@ services:
       - kirocrew-home:/home/kirocrew
       - docker-bin:/opt/docker-cli:ro
       - docker-bin:/usr/local/libexec/docker:ro
+      - docker-profile:/etc/profile.d:ro
       - /var/run/docker.sock:/var/run/docker.sock
       # The directory is available as /home/kirocrew/projects/<project-name>.
       - ${PROJECTS_BASE}:/home/kirocrew/projects
@@ -72,3 +75,4 @@ volumes:
   kirocrew-home:
     name: kirocrew-home
   docker-bin:
+  docker-profile:

@@ -3,3 +3,4 @@
 *.log
 projects/*
 !projects/.gitkeep
+.kiro/

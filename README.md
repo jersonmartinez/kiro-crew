@@ -9,6 +9,7 @@ La configuración no contiene rutas ni nombres de proyectos específicos de ning
 - Imagen oficial `ghcr.io/kirodotdev/kirocrew:stable`.
 - Servicio init `docker-cli` basado en `docker:cli`.
 - Docker CLI y el plugin Compose inyectados mediante el volumen `docker-bin`.
+- Docker CLI disponible también en shells interactivos/login mediante `/etc/profile.d`.
 - Estado persistente en el volumen nombrado `kirocrew-home`.
 - Proyectos disponibles en `/home/kirocrew/projects/<nombre>`.
 - Dashboard en `http://localhost:5476`, sin exposición en interfaces externas.
