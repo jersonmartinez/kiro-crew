@@ -38,7 +38,7 @@ Desde WSL2, en el directorio del proyecto:
 ```bash
 cp .env.example .env
 # Edita PROJECTS_BASE si quieres usar repositorios fuera de ./projects
-docker compose run --rm make up
+docker compose up -d
 ```
 
 El valor inicial `PROJECTS_BASE=./projects` permite arrancar el stack sin crear rutas externas. Para usar el filesystem nativo de WSL2, por ejemplo:
@@ -182,7 +182,7 @@ docker compose run --rm make node-test
 docker exec kirocrew bash -l -c 'node --version && npm --version && npx --version'
 ```
 
-El volumen `node-bin` es una caché de herramientas; puedes recrearlo con `docker compose up -d --force-recreate` si cambias la versión o el contenido del sidecar.
+El volumen `node-bin` es una caché de herramientas; puedes recrearlo con `docker compose up -d --force-recreate` si cambias la versión o el contenido del sidecar. El servicio Dockerizado de Make prioriza las variables que recibe del Compose sobre los valores de `.env`, para conservar correctamente las rutas host al ejecutar Compose anidado.
 
 ## Persistencia y backup
 

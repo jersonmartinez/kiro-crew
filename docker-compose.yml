@@ -38,6 +38,7 @@ services:
     environment:
       COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-kiro-crew}
       PROJECTS_BASE: ${PROJECTS_BASE}
+      PROJECT_PROFILE: ${PROJECT_PROFILE:-dev}
     volumes:
       - .:/workspace
       - /var/run/docker.sock:/var/run/docker.sock
