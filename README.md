@@ -138,12 +138,16 @@ docker compose version
 ls -l /var/run/docker.sock
 ```
 
-Si el socket existe pero `docker ps` falla dentro del contenedor, revisa el sidecar y recrea el servicio:
+Si el socket existe pero `docker ps` falla dentro del contenedor, comprueba su GID y configúralo en `.env`:
 
 ```bash
+stat -c '%g' /var/run/docker.sock
+# Actualiza DOCKER_SOCKET_GID en .env con ese valor
 docker compose logs docker-cli
 docker compose up -d --force-recreate
 ```
+
+En Docker Desktop + WSL2 normalmente el socket aparece como `root:root`, por lo que `DOCKER_SOCKET_GID=0` es el valor esperado. KiroCrew sigue ejecutándose como el usuario interno `kirocrew`; `group_add` solo añade el grupo suplementario necesario para acceder al socket.
 
 ### Rutas de proyectos
 

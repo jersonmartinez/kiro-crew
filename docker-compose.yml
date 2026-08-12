@@ -36,6 +36,9 @@ services:
       # For least-privilege access, replace the directory mount with explicit project binds.
     cap_add:
       - SYS_ADMIN
+    # Docker Desktop exposes the socket as root:root by default in WSL2.
+    group_add:
+      - "${DOCKER_SOCKET_GID:-0}"
     labels:
       com.kirocrew.role: ai-agent
       com.kirocrew.version: stable
