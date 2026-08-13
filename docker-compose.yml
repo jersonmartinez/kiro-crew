@@ -8,7 +8,7 @@ services:
         mkdir -p /docker-bin/cli-plugins /docker-profile
         cp /usr/local/bin/docker /docker-bin/docker
         cp /usr/local/libexec/docker/cli-plugins/docker-compose /docker-bin/cli-plugins/docker-compose
-        printf '%s\n' 'export PATH="/opt/docker-cli:/opt/node-cli/bin:$${PATH}"' > /docker-profile/docker-cli.sh
+        printf '%s\n' 'export PATH="/opt/docker-cli:/opt/node-cli/bin:/opt/gh-cli:$${PATH}"' > /docker-profile/docker-cli.sh
     volumes:
       - docker-bin:/docker-bin
       - docker-profile:/docker-profile
@@ -27,6 +27,18 @@ services:
         ln -sf ../lib/node_modules/corepack/dist/corepack.js /node-bin/bin/corepack
     volumes:
       - node-bin:/node-bin
+
+  gh-cli:
+    image: debian:trixie-slim
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        apt-get update -qq
+        DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends gh >/dev/null
+        install -D -m 0755 /usr/bin/gh /gh-bin/gh
+    volumes:
+      - gh-bin:/gh-bin
 
   make:
     profiles:
@@ -60,19 +72,23 @@ services:
         condition: service_completed_successfully
       node-cli:
         condition: service_completed_successfully
+      gh-cli:
+        condition: service_completed_successfully
     ports:
       - "127.0.0.1:${DASHBOARD_PORT}:5476"
     environment:
       KIROCREW_BIND: 0.0.0.0
       TZ: ${TZ}
-      PATH: /opt/docker-cli:/opt/node-cli/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PATH: /opt/docker-cli:/opt/node-cli/bin:/opt/gh-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       NODE_PATH: /opt/node-cli/lib/node_modules
+      GH_TOKEN: ${GH_TOKEN:-}
     volumes:
       - kirocrew-home:/home/kirocrew
       - docker-bin:/opt/docker-cli:ro
       - docker-bin:/usr/local/libexec/docker:ro
       - docker-profile:/etc/profile.d:ro
       - node-bin:/opt/node-cli:ro
+      - gh-bin:/opt/gh-cli:ro
       - /var/run/docker.sock:/var/run/docker.sock
       - ${PROJECTS_BASE}:/home/kirocrew/projects
     cap_add:
@@ -102,3 +118,4 @@ volumes:
   docker-bin:
   docker-profile:
   node-bin:
+  gh-bin:

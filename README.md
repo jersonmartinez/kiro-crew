@@ -9,8 +9,10 @@ La configuración no contiene rutas ni nombres de proyectos específicos de ning
 - Imagen oficial `ghcr.io/kirodotdev/kirocrew:stable`.
 - Servicio init `docker-cli` basado en `docker:cli`.
 - Servicio init `node-cli` basado en `node:20-slim` (Node.js, npm, npx).
+- Servicio init `gh-cli` basado en `debian:trixie-slim` (GitHub CLI).
 - Docker CLI y el plugin Compose inyectados mediante el volumen `docker-bin`.
 - Node.js CLI inyectado mediante el volumen `node-bin`.
+- GitHub CLI inyectado mediante el volumen `gh-bin`.
 - Docker CLI disponible también en shells interactivos/login mediante `/etc/profile.d`.
 - Estado persistente en el volumen nombrado `kirocrew-home`.
 - Proyectos disponibles en `/home/kirocrew/projects/<nombre>`.
@@ -81,6 +83,7 @@ Las rutas bajo `/mnt/c` suelen tener peor rendimiento de I/O que las rutas dentr
 | `make access-test` | Verifica usuario, escritura, Docker y Node dentro de KiroCrew. |
 | `make token` | Genera una URL autenticada para el dashboard. |
 | `make node-test` | Verifica Node.js y npm dentro de KiroCrew. |
+| `make gh-test` | Verifica GitHub CLI y su estado de autenticación. |
 | `make backup` | Crea un backup timestamped del volumen `kirocrew-home`. |
 | `make project-up NAME=X` | Levanta el stack Docker de un proyecto montado. |
 | `make project-down NAME=X` | Detiene el stack Docker de un proyecto montado. |
@@ -99,6 +102,7 @@ docker compose run --rm make status
 docker compose run --rm make update
 docker compose run --rm make docker-test
 docker compose run --rm make node-test
+docker compose run --rm make gh-test
 docker compose run --rm make access-test
 docker compose run --rm make token
 docker compose run --rm make backup
@@ -185,6 +189,25 @@ docker compose run --rm make token
 ```
 
 El token se imprime únicamente en la terminal; no lo guardes en Git ni lo compartas públicamente.
+
+## GitHub CLI dentro de KiroCrew
+
+GitHub CLI se instala mediante el sidecar `gh-cli`; no se instala en Windows ni dentro de la imagen base. Configura un token local en `.env`:
+
+```dotenv
+GH_TOKEN=ghp_your-token-here
+```
+
+Nunca publiques ese valor ni lo incluyas en `.env.example`. Después de recrear el stack:
+
+```bash
+docker compose up -d --force-recreate
+docker exec kirocrew gh --version
+docker exec kirocrew gh auth status
+docker exec kirocrew gh repo list --limit 3
+```
+
+Si un token fue expuesto, revócalo en GitHub y genera uno nuevo antes de continuar.
 
 ## Node.js dentro de KiroCrew
 
@@ -275,7 +298,8 @@ Realiza primero el backup descrito arriba. Elimina o restaura el volumen únicam
     └── decisions/
         ├── ADR-001-docker-cli-sidecar.md
         ├── ADR-002-node-cli-sidecar.md
-        └── ADR-003-shared-network.md
+        ├── ADR-003-shared-network.md
+        └── ADR-004-gh-cli-sidecar.md
 ```
 
 ## Contribuir

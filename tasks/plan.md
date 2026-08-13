@@ -10,6 +10,7 @@ Crear un bootstrap público y reproducible para KiroCrew sobre Docker Desktop + 
 - Usar el named volume `kirocrew-home` como memoria y estado persistente del agente.
 - Inyectar Node.js 20, npm, npx y corepack con un sidecar y volumen `node-bin`.
 - Crear la red administrada `kirocrew-net` para que stacks de proyectos puedan conectarse explícitamente.
+- Inyectar GitHub CLI con un sidecar y mantener su token exclusivamente en `.env` local.
 
 ## Task List
 - [x] Crear el Compose con persistencia, proyectos, socket, healthcheck y sidecar del CLI.
