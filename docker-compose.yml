@@ -8,7 +8,7 @@ services:
         mkdir -p /docker-bin/cli-plugins /docker-profile
         cp /usr/local/bin/docker /docker-bin/docker
         cp /usr/local/libexec/docker/cli-plugins/docker-compose /docker-bin/cli-plugins/docker-compose
-        printf '%s\n' 'export PATH="/opt/docker-cli:/opt/node-cli/bin:/opt/gh-cli:$${PATH}"' > /docker-profile/docker-cli.sh
+        printf '%s\n' 'export PATH="/opt/docker-cli:/opt/node-cli/bin:/opt/gh-cli:/home/kirocrew/.local/bin:$${PATH}"' > /docker-profile/docker-cli.sh
     volumes:
       - docker-bin:/docker-bin
       - docker-profile:/docker-profile
@@ -79,7 +79,7 @@ services:
     environment:
       KIROCREW_BIND: 0.0.0.0
       TZ: ${TZ}
-      PATH: /opt/docker-cli:/opt/node-cli/bin:/opt/gh-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PATH: /opt/docker-cli:/opt/node-cli/bin:/opt/gh-cli:/home/kirocrew/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       NODE_PATH: /opt/node-cli/lib/node_modules
       GH_TOKEN: ${GH_TOKEN:-}
     volumes:

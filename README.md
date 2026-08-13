@@ -209,7 +209,21 @@ El dashboard puede estar saludable aunque las sesiones de chat no puedan inicial
 docker compose run --rm make kiro-login
 ```
 
-El mensaje `Request initialize timed out` también puede aparecer cuando hay demasiados procesos ACP/MCP iniciándose a la vez. La configuración local recomendada usa `session.eager_spawn=false`, `agent.subagent_auto_max=8`, `taskrunner.max_parallel_steps=8` y `mcp_gateway.max_backends=16`. Estos valores se guardan en el volumen `kirocrew-home` y se pueden revisar con:
+El mensaje `Request initialize timed out` también puede aparecer cuando el agente seleccionado carga MCPs que no responden. El agente completo `kirocrew` puede depender de `kirocrew-core`, `kirocrew-computer`, `kirocrew-cron`, `auto-improvement` y `mochi`; si alguno falla durante el handshake, usa temporalmente el agente `kirocrew-lite`, que no carga MCPs:
+
+```bash
+docker exec kirocrew kirocrew config set agent.default_agent kirocrew-lite
+docker compose up -d --force-recreate kirocrew
+```
+
+Para volver al agente completo después de reparar sus MCPs:
+
+```bash
+docker exec kirocrew kirocrew config set agent.default_agent default
+docker compose up -d --force-recreate kirocrew
+```
+
+La configuración local recomendada usa `session.eager_spawn=false`, `agent.subagent_auto_max=8`, `taskrunner.max_parallel_steps=8` y `mcp_gateway.max_backends=16`. Estos valores se guardan en el volumen `kirocrew-home` y se pueden revisar con:
 
 ```bash
 docker exec kirocrew kirocrew config get session.eager_spawn
