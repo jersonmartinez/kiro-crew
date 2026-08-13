@@ -19,6 +19,7 @@ Se descartó porque un montaje sobre el directorio completo puede ocultar binari
 
 ## Consequences
 - `docker compose up -d` es idempotente después del setup inicial y no requiere una imagen personalizada.
+- El servicio KiroCrew deja que el Tini incluido en la imagen sea PID 1 para recoger procesos ACP/MCP correctamente.
 - El volumen `docker-bin` se recrea/actualiza al ejecutar el servicio init.
 - El socket Docker sigue siendo root-equivalente en el host y se acepta únicamente para desarrollo local.
 - La compatibilidad del CLI sigue la arquitectura de la imagen oficial `docker:cli` usada por Docker Desktop.

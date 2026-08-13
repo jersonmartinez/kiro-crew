@@ -65,8 +65,8 @@ services:
     image: ${KIROCREW_IMAGE}
     hostname: kirocrew
     container_name: kirocrew
-    init: true
     restart: unless-stopped
+    stop_grace_period: 30s
     depends_on:
       docker-cli:
         condition: service_completed_successfully

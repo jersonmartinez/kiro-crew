@@ -93,6 +93,7 @@ Si ejecutas `docker compose` desde PowerShell con una ruta `/mnt/c/...`, Docker 
 | `make token` | Genera una URL autenticada para el dashboard. |
 | `make node-test` | Verifica Node.js y npm dentro de KiroCrew. |
 | `make gh-test` | Verifica GitHub CLI y su estado de autenticación. |
+| `make kiro-login` | Inicia el login interactivo de Kiro CLI. |
 | `make backup` | Crea un backup timestamped del volumen `kirocrew-home`. |
 | `make project-up NAME=X` | Levanta el stack Docker de un proyecto montado. |
 | `make project-down NAME=X` | Detiene el stack Docker de un proyecto montado. |
@@ -112,6 +113,7 @@ docker compose run --rm make update
 docker compose run --rm make docker-test
 docker compose run --rm make node-test
 docker compose run --rm make gh-test
+docker compose run --rm make kiro-login
 docker compose run --rm make access-test
 docker compose run --rm make token
 docker compose run --rm make backup
@@ -198,6 +200,23 @@ docker compose run --rm make token
 ```
 
 El token se imprime únicamente en la terminal; no lo guardes en Git ni lo compartas públicamente.
+
+## Kiro CLI y errores de inicialización
+
+El dashboard puede estar saludable aunque las sesiones de chat no puedan inicializarse si Kiro CLI no está autenticado. Completa el login con el flujo de dispositivo desde una terminal interactiva:
+
+```bash
+docker compose run --rm make kiro-login
+```
+
+El mensaje `Request initialize timed out` también puede aparecer cuando hay demasiados procesos ACP/MCP iniciándose a la vez. La configuración local recomendada usa `session.eager_spawn=false`, `agent.subagent_auto_max=8`, `taskrunner.max_parallel_steps=8` y `mcp_gateway.max_backends=16`. Estos valores se guardan en el volumen `kirocrew-home` y se pueden revisar con:
+
+```bash
+docker exec kirocrew kirocrew config get session.eager_spawn
+docker exec kirocrew kirocrew config get agent.subagent_auto_max
+docker exec kirocrew kirocrew config get taskrunner.max_parallel_steps
+docker exec kirocrew kirocrew config get mcp_gateway.max_backends
+```
 
 ## GitHub CLI dentro de KiroCrew
 

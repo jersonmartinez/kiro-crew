@@ -2,7 +2,7 @@
 
 PROJECT_PROFILE ?= dev
 
-.PHONY: up down restart logs shell status update docker-test node-test gh-test access-test token backup project-up project-down
+.PHONY: up down restart logs shell status update docker-test node-test gh-test kiro-login access-test token backup project-up project-down
 
 up:
 	docker compose up -d
@@ -39,6 +39,9 @@ node-test:
 gh-test:
 	docker compose exec kirocrew gh --version
 	docker compose exec kirocrew gh auth status
+
+kiro-login:
+	docker compose exec -it kirocrew kiro-cli login --use-device-flow
 
 access-test:
 	docker compose exec kirocrew bash -l -c 'id; test -w /home/kirocrew/.kiro; test -w /home/kirocrew/projects; docker ps >/dev/null; node --version; echo access-check-ok'
