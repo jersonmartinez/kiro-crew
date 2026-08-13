@@ -68,6 +68,15 @@ PROJECTS_BASE=/mnt/c/Users/your-windows-user/Documents/Repositories
 
 Las rutas bajo `/mnt/c` suelen tener peor rendimiento de I/O que las rutas dentro del filesystem de WSL2.
 
+### Formato de rutas según la terminal
+
+No mezcles formatos de ruta entre terminales:
+
+- Desde WSL2: `PROJECTS_BASE=/mnt/c/Users/your-windows-user/Documents/Repositories`.
+- Desde PowerShell o Windows: `PROJECTS_BASE=C:/Users/your-windows-user/Documents/Repositories`.
+
+Si ejecutas `docker compose` desde PowerShell con una ruta `/mnt/c/...`, Docker Desktop puede crear un montaje vacío y KiroCrew no verá los repositorios. Si cambias de terminal, actualiza el `.env` local y recrea el servicio.
+
 ## Comandos
 
 | Comando | Descripción |
