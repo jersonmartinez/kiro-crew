@@ -14,7 +14,7 @@ services:
       - docker-profile:/docker-profile
 
   node-cli:
-    image: node:20-slim
+    image: node:22-slim
     command:
       - /bin/sh
       - -ec
@@ -61,6 +61,21 @@ services:
     networks:
       - kirocrew-net
 
+  kirocrew-config:
+    image: ${KIROCREW_IMAGE}
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        kirocrew config set knowledge.max_sources "$${KIROCREW_KNOWLEDGE_MAX_SOURCES}"
+        kirocrew config set knowledge.extraction_pool_size "$${KIROCREW_KNOWLEDGE_EXTRACTION_POOL_SIZE}"
+        kirocrew config set knowledge.folder_ingest_chunk_budget "$${KIROCREW_KNOWLEDGE_FOLDER_CHUNK_BUDGET}"
+    environment:
+      KIROCREW_KNOWLEDGE_MAX_SOURCES: ${KIROCREW_KNOWLEDGE_MAX_SOURCES:-100}
+      KIROCREW_KNOWLEDGE_EXTRACTION_POOL_SIZE: ${KIROCREW_KNOWLEDGE_EXTRACTION_POOL_SIZE:-1}
+      KIROCREW_KNOWLEDGE_FOLDER_CHUNK_BUDGET: ${KIROCREW_KNOWLEDGE_FOLDER_CHUNK_BUDGET:-25}
+    volumes:
+      - kirocrew-home:/home/kirocrew
+
   kirocrew:
     image: ${KIROCREW_IMAGE}
     hostname: kirocrew
@@ -74,6 +89,8 @@ services:
         condition: service_completed_successfully
       gh-cli:
         condition: service_completed_successfully
+      kirocrew-config:
+        condition: service_completed_successfully
     ports:
       - "127.0.0.1:${DASHBOARD_PORT}:5476"
     environment:
@@ -82,6 +99,7 @@ services:
       PATH: /opt/docker-cli:/opt/node-cli/bin:/opt/gh-cli:/home/kirocrew/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       NODE_PATH: /opt/node-cli/lib/node_modules
       GH_TOKEN: ${GH_TOKEN:-}
+      KIROCREW_ALLOW_UNSANDBOXED: ${KIROCREW_ALLOW_UNSANDBOXED:-1}
     volumes:
       - kirocrew-home:/home/kirocrew
       - docker-bin:/opt/docker-cli:ro
@@ -93,6 +111,8 @@ services:
       - ${PROJECTS_BASE}:/home/kirocrew/projects
     cap_add:
       - SYS_ADMIN
+    security_opt:
+      - seccomp:./kirocrew-seccomp.json
     group_add:
       - "${DOCKER_SOCKET_GID:-0}"
     labels:

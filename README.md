@@ -54,6 +54,10 @@ cp .env.example .env
 docker compose up -d
 ```
 
+El servicio `kirocrew-config` aplica automáticamente los valores seguros de
+concurrencia para Knowledge en el volumen persistente antes de iniciar KiroCrew.
+No borra sesiones, memoria, credenciales ni fuentes existentes.
+
 El valor inicial `PROJECTS_BASE=./projects` permite arrancar el stack sin crear rutas externas. Para usar el filesystem nativo de WSL2, por ejemplo:
 
 ```dotenv
@@ -81,7 +85,8 @@ Si ejecutas `docker compose` desde PowerShell con una ruta `/mnt/c/...`, Docker 
 
 | Comando | Descripción |
 | --- | --- |
-| `make up` | Inicia el sidecar del CLI y KiroCrew en segundo plano. |
+| `make up` | Aplica la configuración segura y luego inicia KiroCrew en segundo plano. |
+| `make configure` | Reaplica los valores de concurrencia de Knowledge sin borrar el volumen. |
 | `make down` | Detiene y elimina los contenedores, sin borrar volúmenes. |
 | `make restart` | Detiene y vuelve a iniciar el stack. |
 | `make logs` | Sigue los logs de KiroCrew. |
@@ -104,6 +109,7 @@ El servicio `make` se inicia bajo el perfil `tools` y usa una imagen basada en `
 
 ```bash
 docker compose run --rm make up
+docker compose run --rm make configure
 docker compose run --rm make down
 docker compose run --rm make restart
 docker compose run --rm make logs
@@ -223,14 +229,24 @@ docker exec kirocrew kirocrew config set agent.default_agent default
 docker compose up -d --force-recreate kirocrew
 ```
 
-La configuración local recomendada usa `session.eager_spawn=false`, `agent.subagent_auto_max=8`, `taskrunner.max_parallel_steps=8` y `mcp_gateway.max_backends=16`. Estos valores se guardan en el volumen `kirocrew-home` y se pueden revisar con:
+La configuración local recomendada usa `session.eager_spawn=false`, `agent.subagent_auto_max=8`, `taskrunner.max_parallel_steps=8` y `mcp_gateway.max_backends=16`. Para Knowledge, el servicio `kirocrew-config` aplica `knowledge.max_sources=100`, `knowledge.extraction_pool_size=1` y `knowledge.folder_ingest_chunk_budget=25`. Estos valores se guardan en el volumen `kirocrew-home` y se pueden revisar con:
 
 ```bash
 docker exec kirocrew kirocrew config get session.eager_spawn
 docker exec kirocrew kirocrew config get agent.subagent_auto_max
 docker exec kirocrew kirocrew config get taskrunner.max_parallel_steps
 docker exec kirocrew kirocrew config get mcp_gateway.max_backends
+docker exec kirocrew kirocrew config get knowledge.max_sources
+docker exec kirocrew kirocrew config get knowledge.extraction_pool_size
+docker exec kirocrew kirocrew config get knowledge.folder_ingest_chunk_budget
 ```
+
+Los valores se pueden cambiar en `.env` y reaplicar con `make configure`. Bajar
+`knowledge.extraction_pool_size` o `knowledge.folder_ingest_chunk_budget` reduce
+la velocidad máxima de indexación, pero evita que una fuente grande bloquee el
+chat ACP. No es necesario aumentar la memoria de Docker mientras el host conserve
+memoria disponible; primero se debe limitar la concurrencia y procesar las fuentes
+por lotes.
 
 ## GitHub CLI dentro de KiroCrew
 

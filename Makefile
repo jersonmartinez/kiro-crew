@@ -2,17 +2,20 @@
 
 PROJECT_PROFILE ?= dev
 
-.PHONY: up down restart logs shell status update docker-test node-test gh-test kiro-login access-test token backup project-up project-down
+.PHONY: up configure down restart logs shell status update docker-test node-test gh-test kiro-login access-test token backup project-up project-down
 
 up:
-	docker compose up -d
+	docker compose up -d --force-recreate kirocrew-config kirocrew
+
+configure:
+	docker compose up -d --force-recreate kirocrew-config
 
 down:
 	docker compose down
 
 restart:
 	docker compose down
-	docker compose up -d
+	docker compose up -d --force-recreate kirocrew-config kirocrew
 
 logs:
 	docker compose logs -f kirocrew
@@ -26,7 +29,7 @@ status:
 
 update:
 	docker compose pull kirocrew
-	docker compose up -d --force-recreate kirocrew
+	docker compose up -d --force-recreate kirocrew-config kirocrew
 
 docker-test:
 	docker compose exec kirocrew docker ps
