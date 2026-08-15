@@ -62,7 +62,7 @@ services:
       - kirocrew-net
 
   kirocrew-config:
-    image: ${KIROCREW_IMAGE}
+    image: ${KIROCREW_RUNTIME_IMAGE:-kirocrew-local:latest}
     entrypoint: ["/bin/sh", "-ec"]
     command:
       - |
@@ -77,7 +77,12 @@ services:
       - kirocrew-home:/home/kirocrew
 
   kirocrew:
-    image: ${KIROCREW_IMAGE}
+    image: ${KIROCREW_RUNTIME_IMAGE:-kirocrew-local:latest}
+    build:
+      context: .
+      dockerfile: Dockerfile.kirocrew
+      args:
+        BASE_IMAGE: ${KIROCREW_IMAGE}
     hostname: kirocrew
     container_name: kirocrew
     restart: unless-stopped
@@ -100,6 +105,7 @@ services:
       NODE_PATH: /opt/node-cli/lib/node_modules
       GH_TOKEN: ${GH_TOKEN:-}
       KIROCREW_ALLOW_UNSANDBOXED: ${KIROCREW_ALLOW_UNSANDBOXED:-1}
+      KIROCREW_ACP_INIT_TIMEOUT_SECS: ${KIROCREW_ACP_INIT_TIMEOUT_SECS:-120}
     volumes:
       - kirocrew-home:/home/kirocrew
       - docker-bin:/opt/docker-cli:ro

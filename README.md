@@ -56,7 +56,9 @@ docker compose up -d
 
 El servicio `kirocrew-config` aplica automáticamente los valores seguros de
 concurrencia para Knowledge en el volumen persistente antes de iniciar KiroCrew.
-No borra sesiones, memoria, credenciales ni fuentes existentes.
+No borra sesiones, memoria, credenciales ni fuentes existentes. El servicio
+`kirocrew` se construye localmente desde `Dockerfile.kirocrew` sobre la imagen
+base configurada, para mantener un timeout ACP de initialize reproducible.
 
 El valor inicial `PROJECTS_BASE=./projects` permite arrancar el stack sin crear rutas externas. Para usar el filesystem nativo de WSL2, por ejemplo:
 
@@ -92,7 +94,7 @@ Si ejecutas `docker compose` desde PowerShell con una ruta `/mnt/c/...`, Docker 
 | `make logs` | Sigue los logs de KiroCrew. |
 | `make shell` | Abre un `bash` interactivo dentro de KiroCrew. |
 | `make status` | Muestra el estado de Compose y el health del contenedor. |
-| `make update` | Descarga la imagen configurada y recrea KiroCrew. |
+| `make update` | Descarga la imagen base, reconstruye el runtime local y recrea KiroCrew. |
 | `make docker-test` | Ejecuta `docker ps` dentro de KiroCrew. |
 | `make access-test` | Verifica usuario, escritura, Docker y Node dentro de KiroCrew. |
 | `make token` | Genera una URL autenticada para el dashboard. |
@@ -247,6 +249,17 @@ la velocidad máxima de indexación, pero evita que una fuente grande bloquee el
 chat ACP. No es necesario aumentar la memoria de Docker mientras el host conserve
 memoria disponible; primero se debe limitar la concurrencia y procesar las fuentes
 por lotes.
+
+El error `Request initialize timed out after 30s` ocurre durante el handshake ACP,
+antes de procesar el mensaje. El runtime local construido por
+`Dockerfile.kirocrew` eleva ese presupuesto a `KIROCREW_ACP_INIT_TIMEOUT_SECS`
+(120 segundos por defecto). No confundirlo con `chat_turn_timeout_secs`, que
+controla la duración del turno después de inicializar la sesión.
+
+```bash
+docker exec kirocrew kirocrew config get agent.session_start_timeout_secs
+docker inspect kirocrew --format '{{range .Config.Env}}{{println .}}{{end}}' | grep KIROCREW_ACP_INIT_TIMEOUT_SECS
+```
 
 ## GitHub CLI dentro de KiroCrew
 

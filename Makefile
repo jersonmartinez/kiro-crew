@@ -5,7 +5,7 @@ PROJECT_PROFILE ?= dev
 .PHONY: up configure down restart logs shell status update docker-test node-test gh-test kiro-login access-test token backup project-up project-down
 
 up:
-	docker compose up -d --force-recreate kirocrew-config kirocrew
+	docker compose up -d --build --force-recreate kirocrew-config kirocrew
 
 configure:
 	docker compose up -d --force-recreate kirocrew-config
@@ -15,7 +15,7 @@ down:
 
 restart:
 	docker compose down
-	docker compose up -d --force-recreate kirocrew-config kirocrew
+	docker compose up -d --build --force-recreate kirocrew-config kirocrew
 
 logs:
 	docker compose logs -f kirocrew
@@ -28,7 +28,8 @@ status:
 	@docker inspect --format='{{.Name}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}n/a{{end}}' kirocrew 2>/dev/null || true
 
 update:
-	docker compose pull kirocrew
+	docker pull $(KIROCREW_IMAGE)
+	docker compose build --pull kirocrew
 	docker compose up -d --force-recreate kirocrew-config kirocrew
 
 docker-test:

@@ -1,0 +1,18 @@
+ARG BASE_IMAGE=ghcr.io/kirodotdev/kirocrew:stable
+FROM ${BASE_IMAGE}
+
+USER root
+
+RUN python3 - <<'PY'
+from pathlib import Path
+
+path = Path('/usr/local/lib/python3.12/site-packages/kiro_crew/acp/runtime.py')
+text = path.read_text()
+old = '_INIT_TIMEOUT = 30.0'
+new = '_INIT_TIMEOUT = float(os.environ.get("KIROCREW_ACP_INIT_TIMEOUT_SECS", "120"))'
+if old not in text:
+    raise SystemExit(f'Expected ACP timeout constant was not found in {path}')
+path.write_text(text.replace(old, new, 1))
+PY
+
+USER kirocrew
