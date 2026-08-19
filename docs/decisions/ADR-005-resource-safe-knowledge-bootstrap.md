@@ -38,7 +38,7 @@ Se descarta porque una instalación nueva no heredaría los valores y el problem
 ## Consequences
 
 - Las instalaciones nuevas aplican defaults reproducibles antes de iniciar el gateway.
-- Las recreaciones no borran sesiones, memoria, credenciales ni fuentes porque el servicio usa el mismo volumen `kirocrew-home`.
+- Las recreaciones no borran sesiones, memoria, credenciales ni fuentes porque los servicios usan volúmenes persistentes (`kiro-a-home` / `kiro-b-home`).
 - La indexación masiva tarda más, pero el chat y ACP conservan capacidad de respuesta.
 - Un operador puede aumentar gradualmente los valores desde `.env` después de medir CPU, RAM, procesos y latencia ACP.
 - Las fuentes ya pausadas no se reanudan automáticamente; deben procesarse por lotes de forma deliberada.

@@ -2,70 +2,108 @@
 
 PROJECT_PROFILE ?= dev
 
-.PHONY: up configure down restart logs shell status update docker-test node-test gh-test kiro-login access-test token backup project-up project-down
+.PHONY: up configure down restart logs shell status update masks mask-report docker-test node-test gh-test kiro-login kiro-login-a kiro-login-b access-test token token-a token-b backup project-up project-down
 
-up:
-	docker compose up -d --build --force-recreate kirocrew-config kirocrew
+INSTANCE ?= kiro-a
+
+up: masks
+	docker compose up -d --build --force-recreate kiro-a-config kiro-b-config kiro-a kiro-b
+
+# Regenerate docker-compose.override.yml so dependency directories under
+# PROJECTS_BASE are masked with empty tmpfs mounts (see ADR-009). Run this
+# after cloning a repo or installing dependencies on the host.
+masks:
+	sh scripts/generate-mask-override.sh
+
+# Report the traversal cost of a project tree as the container sees it.
+# Usage: make mask-report PROJECT=premium-prb/engineering-governance
+mask-report:
+ifndef PROJECT
+	$(error PROJECT is required. Usage: make mask-report PROJECT=<relative-path>)
+endif
+	docker compose exec $(INSTANCE) python3 -c "import os,time,sys;b='/home/kirocrew/projects/'+sys.argv[1];t=time.time();n=sum(len(f) for _,_,f in os.walk(b));print('%s: %d files in %.1fs'%(sys.argv[1],n,time.time()-t))" $(PROJECT)
 
 configure:
-	docker compose up -d --force-recreate kirocrew-config
+	docker compose up -d --force-recreate kiro-a-config kiro-b-config
 
 down:
 	docker compose down
 
-restart:
+restart: masks
 	docker compose down
-	docker compose up -d --build --force-recreate kirocrew-config kirocrew
+	docker compose up -d --build --force-recreate kiro-a-config kiro-b-config kiro-a kiro-b
 
 logs:
-	docker compose logs -f kirocrew
+	docker compose logs -f kiro-a kiro-b
 
 shell:
-	docker compose exec kirocrew bash
+	docker compose exec $(INSTANCE) bash
 
 status:
 	docker compose ps
-	@docker inspect --format='{{.Name}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}n/a{{end}}' kirocrew 2>/dev/null || true
+	@docker inspect --format='{{.Name}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}n/a{{end}}' kiro-a kiro-b 2>/dev/null || true
 
-update:
+update: masks
 	docker pull $(KIROCREW_IMAGE)
-	docker compose build --pull kirocrew
-	docker compose up -d --force-recreate kirocrew-config kirocrew
+	docker compose build --pull kiro-a kiro-b
+	docker compose up -d --force-recreate kiro-a-config kiro-b-config kiro-a kiro-b
 
 docker-test:
-	docker compose exec kirocrew docker ps
+	docker compose exec $(INSTANCE) docker ps
 
 node-test:
-	docker compose exec kirocrew node --version
-	docker compose exec kirocrew npm --version
-	docker compose exec kirocrew npx --version
+	docker compose exec $(INSTANCE) node --version
+	docker compose exec $(INSTANCE) npm --version
+	docker compose exec $(INSTANCE) npx --version
 
 gh-test:
-	docker compose exec kirocrew gh --version
-	docker compose exec kirocrew gh auth status
+	docker compose exec $(INSTANCE) gh --version
+	docker compose exec $(INSTANCE) gh auth status
+	docker compose exec $(INSTANCE) gh api user --jq .login
+	docker compose exec $(INSTANCE) git config --global --get user.name
+	docker compose exec $(INSTANCE) git config --global --get user.email
 
-kiro-login:
-	docker compose exec -it kirocrew kiro-cli login --use-device-flow
+# Confirm each instance is authenticated as its own GitHub account (ADR-010).
+gh-identity:
+	@for i in a b; do \
+		printf 'kiro-%s: ' "$$i"; \
+		docker compose exec -T "kiro-$$i" gh api user --jq .login 2>/dev/null || echo "NOT AUTHENTICATED"; \
+	done
+
+kiro-login: kiro-login-a
+
+kiro-login-a:
+	docker compose exec -it kiro-a kiro-cli login --use-device-flow
+
+kiro-login-b:
+	docker compose exec -it kiro-b kiro-cli login --use-device-flow
 
 access-test:
-	docker compose exec kirocrew bash -l -c 'id; test -w /home/kirocrew/.kiro; test -w /home/kirocrew/projects; docker ps >/dev/null; node --version; echo access-check-ok'
+	docker compose exec $(INSTANCE) bash -l -c 'id; test -w /home/kirocrew/.kiro; test -w /home/kirocrew/projects; docker ps >/dev/null; node --version; echo access-check-ok'
 
-token:
-	docker compose exec kirocrew kirocrew token
+token: token-a
+
+token-a:
+	docker compose exec kiro-a kirocrew token
+
+token-b:
+	docker compose exec kiro-b kirocrew token
 
 backup:
 	@set -eu; \
 	stamp=$$(date +%Y%m%d-%H%M%S); \
-	container=kirocrew-backup-$$stamp; \
-	archive=kirocrew-home-backup-$$stamp.tgz; \
-	trap 'docker compose up -d; docker rm -f "$$container" >/dev/null 2>&1 || true' EXIT; \
-	echo "Stopping KiroCrew for consistent backup..."; \
+	trap 'docker compose up -d' EXIT; \
+	echo "Stopping Kiro A and Kiro B for consistent backups..."; \
 	docker compose down; \
-	docker create --name "$$container" -v kirocrew-home:/source:ro alpine tar czf "/tmp/$$archive" -C /source . >/dev/null; \
-	docker start -a "$$container" >/dev/null; \
-	docker cp "$$container:/tmp/$$archive" "$(CURDIR)/$$archive"; \
-	docker rm "$$container" >/dev/null; \
-	echo "Backup saved to $(CURDIR)/$$archive. Restarting..."
+	for instance in a b; do \
+		container=kiro-$$instance-backup-$$stamp; \
+		archive=kiro-$$instance-home-backup-$$stamp.tgz; \
+		docker create --name "$$container" -v "kiro-$$instance-home:/source:ro" alpine tar czf "/tmp/$$archive" -C /source . >/dev/null; \
+		docker start -a "$$container" >/dev/null; \
+		docker cp "$$container:/tmp/$$archive" "$(CURDIR)/$$archive"; \
+		docker rm "$$container" >/dev/null; \
+		echo "Backup saved to $(CURDIR)/$$archive"; \
+	done
 
 # Usage: make project-up NAME=demo-app
 # Starts a project's Docker stack using its internal compose file.
@@ -77,7 +115,7 @@ ifndef NAME
 endif
 	@case "$(NAME)" in *[!A-Za-z0-9._-]*) echo "Invalid project name: $(NAME)" >&2; exit 2;; esac
 	$(eval COMPOSE_PATH := $(or $($(shell echo $(NAME) | tr a-z A-Z)_COMPOSE),$(NAME)/infra/docker/compose.yml))
-	docker compose exec kirocrew sh -c 'cd /home/kirocrew/projects && docker compose -f "$(COMPOSE_PATH)" --profile "$(PROJECT_PROFILE)" up -d'
+	docker compose exec $(INSTANCE) sh -c 'cd /home/kirocrew/projects && docker compose -f "$(COMPOSE_PATH)" --profile "$(PROJECT_PROFILE)" up -d'
 
 project-down:
 ifndef NAME
@@ -85,4 +123,4 @@ ifndef NAME
 endif
 	@case "$(NAME)" in *[!A-Za-z0-9._-]*) echo "Invalid project name: $(NAME)" >&2; exit 2;; esac
 	$(eval COMPOSE_PATH := $(or $($(shell echo $(NAME) | tr a-z A-Z)_COMPOSE),$(NAME)/infra/docker/compose.yml))
-	docker compose exec kirocrew sh -c 'cd /home/kirocrew/projects && docker compose -f "$(COMPOSE_PATH)" --profile "$(PROJECT_PROFILE)" down'
+	docker compose exec $(INSTANCE) sh -c 'cd /home/kirocrew/projects && docker compose -f "$(COMPOSE_PATH)" --profile "$(PROJECT_PROFILE)" down'

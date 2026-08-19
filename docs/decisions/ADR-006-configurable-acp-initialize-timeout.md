@@ -1,7 +1,8 @@
 # ADR-006: Hacer configurable el presupuesto del handshake ACP
 
 ## Status
-Accepted
+Accepted. Emendado por ADR-008 (el parche del call site hace efectivo el
+presupuesto; ADR-006 por sí solo dejaba la constante sin referencias).
 
 ## Context
 
@@ -22,8 +23,9 @@ la variable `KIROCREW_ACP_INIT_TIMEOUT_SECS`, cuyo valor por defecto es 120
 segundos. Compose inyecta la misma variable en el gateway para que el valor sea
 visible y verificable en ejecución.
 
-El parche se reconstruye cuando cambia la imagen base con `make update`, y el
-volumen `kirocrew-home` se conserva sin modificaciones destructivas.
+El parche se reconstruye cuando cambia la imagen base con `make update`, y los
+volúmenes `kiro-a-home` / `kiro-b-home` se conservan sin modificaciones
+destructivas.
 
 ## Alternatives Considered
 

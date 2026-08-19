@@ -14,9 +14,10 @@ La configuración no contiene rutas ni nombres de proyectos específicos de ning
 - Node.js CLI inyectado mediante el volumen `node-bin`.
 - GitHub CLI inyectado mediante el volumen `gh-bin`.
 - Docker CLI disponible también en shells interactivos/login mediante `/etc/profile.d`.
-- Estado persistente en el volumen nombrado `kirocrew-home`.
-- Proyectos disponibles en `/home/kirocrew/projects/<nombre>`.
-- Dashboard en `http://localhost:5476`, sin exposición en interfaces externas.
+- Dos instancias aisladas: `kiro-a` y `kiro-b`.
+- Estado persistente separado en los volúmenes `kiro-a-home` y `kiro-b-home`.
+- Proyectos disponibles en `/home/kirocrew/projects/<nombre>` para ambas instancias.
+- Dashboards en `http://localhost:5476` (Kiro A) y `http://localhost:5477` (Kiro B), sin exposición en interfaces externas.
 - Capacidad `SYS_ADMIN` para el sandbox de Chromium/Playwright.
 - Red compartida `kirocrew-net` para comunicación con stacks de proyectos.
 - Makefile y helper para las operaciones habituales.
@@ -42,7 +43,7 @@ KiroCrew se ejecuta como el usuario no-root `kirocrew` (UID 1000). El Compose le
 - Montajes de proyectos y estado con escritura, necesarios para modificar código y conservar memoria.
 - La red `kirocrew-net` para comunicarse con stacks de proyectos que se conecten explícitamente.
 
-No se usa `privileged: true`, `sudo`, `NET_ADMIN` ni un perfil seccomp deshabilitado. El target `access-test` permite comprobar estas capacidades sin elevar permisos adicionales.
+No se usa `privileged: true`, `sudo` ni `NET_ADMIN`. Para que el sandbox anidado de Kiro Crew funcione dentro de Docker Desktop/WSL2, Kiro A y Kiro B usan `seccomp:unconfined` y `apparmor:unconfined`; esto reduce el aislamiento y requiere mantener los dashboards limitados a localhost. El target `access-test` permite comprobar las capacidades del contenedor.
 
 ## Setup rápido
 
@@ -54,11 +55,29 @@ cp .env.example .env
 docker compose up -d
 ```
 
-El servicio `kirocrew-config` aplica automáticamente los valores seguros de
-concurrencia para Knowledge en el volumen persistente antes de iniciar KiroCrew.
-No borra sesiones, memoria, credenciales ni fuentes existentes. El servicio
-`kirocrew` se construye localmente desde `Dockerfile.kirocrew` sobre la imagen
-base configurada, para mantener un timeout ACP de initialize reproducible.
+Los servicios `kiro-a-config` y `kiro-b-config` aplican automáticamente los valores seguros de
+concurrencia para Knowledge en sus respectivos volúmenes persistentes antes de iniciar Kiro A y Kiro B.
+No borra sesiones, memoria, credenciales ni fuentes existentes. Ambas instancias se construyen
+localmente desde `Dockerfile.kirocrew` sobre la imagen base configurada, para mantener un timeout
+ACP de initialize reproducible.
+
+### Bootstrap automático de Kiro CLI
+
+Cada servicio `kiro-a-config` y `kiro-b-config` ejecuta este bootstrap antes de iniciar su gateway:
+
+1. Instala Kiro CLI desde `https://cli.kiro.dev/install` si no existe en `/home/kirocrew/.local/bin/kiro-cli`.
+2. Ejecuta `kirocrew setup --agent-only` para regenerar los agent specs administrados.
+3. Reaplica los valores de Knowledge.
+4. Ejecuta `kiro-cli whoami` y crea `.kiro_cli_setup_complete` únicamente cuando la cuenta ya está autenticada.
+
+Por tanto, después de la autenticación inicial de cada cuenta, el flujo normal queda reducido a:
+
+```bash
+docker compose up -d
+```
+
+El login no se automatiza porque requiere la interacción del propietario con IAM Identity Center.
+Las credenciales permanecen en los volúmenes separados `kiro-a-home` y `kiro-b-home`.
 
 El valor inicial `PROJECTS_BASE=./projects` permite arrancar el stack sin crear rutas externas. Para usar el filesystem nativo de WSL2, por ejemplo:
 
@@ -100,8 +119,9 @@ Si ejecutas `docker compose` desde PowerShell con una ruta `/mnt/c/...`, Docker 
 | `make token` | Genera una URL autenticada para el dashboard. |
 | `make node-test` | Verifica Node.js y npm dentro de KiroCrew. |
 | `make gh-test` | Verifica GitHub CLI y su estado de autenticación. |
-| `make kiro-login` | Inicia el login interactivo de Kiro CLI. |
-| `make backup` | Crea un backup timestamped del volumen `kirocrew-home`. |
+| `make kiro-login-a` | Inicia el login interactivo de Kiro CLI para Kiro A. |
+| `make kiro-login-b` | Inicia el login interactivo de Kiro CLI para Kiro B. |
+| `make backup` | Crea un backup timestamped del estado persistente. |
 | `make project-up NAME=X` | Levanta el stack Docker de un proyecto montado. |
 | `make project-down NAME=X` | Detiene el stack Docker de un proyecto montado. |
 
@@ -121,7 +141,9 @@ docker compose run --rm make update
 docker compose run --rm make docker-test
 docker compose run --rm make node-test
 docker compose run --rm make gh-test
-docker compose run --rm make kiro-login
+docker compose run --rm make kiro-login-a
+# Repite para la segunda cuenta:
+docker compose run --rm make kiro-login-b
 docker compose run --rm make access-test
 docker compose run --rm make token
 docker compose run --rm make backup
@@ -136,9 +158,9 @@ Equivalentes directos:
 ```bash
 docker compose up -d
 docker compose down
-docker compose logs -f kirocrew
-docker compose exec kirocrew bash
-docker compose up -d --force-recreate kirocrew
+docker compose logs -f kiro-a kiro-b
+docker compose exec kiro-a bash
+docker compose up -d --force-recreate kiro-a kiro-b
 ```
 
 ## Proyectos de trabajo
@@ -188,15 +210,18 @@ Levanta primero KiroCrew con `docker compose up -d` o `docker compose run --rm m
 
 `make project-up NAME=demo-app` usa `PROJECT_PROFILE=dev` por defecto y busca `demo-app/infra/docker/compose.yml`. Puedes cambiar ambos valores en `.env`.
 
-## Dashboard
+## Dashboards
 
-Abre [http://localhost:5476](http://localhost:5476). El puerto está limitado a `127.0.0.1`.
+- Kiro A: [http://localhost:5476](http://localhost:5476)
+- Kiro B: [http://localhost:5477](http://localhost:5477)
+
+Ambos puertos están limitados a `127.0.0.1`.
 
 ## Verificar Docker dentro de KiroCrew
 
 ```bash
-docker exec kirocrew docker ps
-docker exec kirocrew docker compose version
+docker exec kiro-a docker ps
+docker exec kiro-a docker compose version
 ```
 
 El primer comando debe mostrar los contenedores visibles para Docker Desktop. El segundo confirma que el plugin Compose fue inyectado por el servicio `docker-cli`.
@@ -214,33 +239,45 @@ El token se imprime únicamente en la terminal; no lo guardes en Git ni lo compa
 El dashboard puede estar saludable aunque las sesiones de chat no puedan inicializarse si Kiro CLI no está autenticado. Completa el login con el flujo de dispositivo desde una terminal interactiva:
 
 ```bash
-docker compose run --rm make kiro-login
+docker compose run --rm make kiro-login-a
+# Repite para la segunda cuenta:
+docker compose run --rm make kiro-login-b
 ```
+
+Verifica que cada instancia quedó asociada a la cuenta correcta:
+
+```bash
+docker compose exec kiro-a kiro-cli whoami
+docker compose exec kiro-b kiro-cli whoami
+```
+
+No compartas los volúmenes `kiro-a-home` y `kiro-b-home`: contienen el estado de autenticación
+independiente de cada cuenta.
 
 El mensaje `Request initialize timed out` también puede aparecer cuando el agente seleccionado carga MCPs que no responden. El agente completo `kirocrew` puede depender de `kirocrew-core`, `kirocrew-computer`, `kirocrew-cron`, `auto-improvement` y `mochi`; si alguno falla durante el handshake, usa temporalmente el agente `kirocrew-lite`, que no carga MCPs:
 
 ```bash
-docker exec kirocrew kirocrew config set agent.default_agent kirocrew-lite
-docker compose up -d --force-recreate kirocrew
+docker exec kiro-a kirocrew config set agent.default_agent kirocrew-lite
+docker compose up -d --force-recreate kiro-a kiro-b
 ```
 
 Para volver al agente completo después de reparar sus MCPs:
 
 ```bash
-docker exec kirocrew kirocrew config set agent.default_agent default
-docker compose up -d --force-recreate kirocrew
+docker exec kiro-a kirocrew config set agent.default_agent default
+docker compose up -d --force-recreate kiro-a kiro-b
 ```
 
-La configuración local recomendada usa `session.eager_spawn=false`, `agent.subagent_auto_max=8`, `taskrunner.max_parallel_steps=8` y `mcp_gateway.max_backends=16`. Para Knowledge, el servicio `kirocrew-config` aplica `knowledge.max_sources=100`, `knowledge.extraction_pool_size=1` y `knowledge.folder_ingest_chunk_budget=25`. Estos valores se guardan en el volumen `kirocrew-home` y se pueden revisar con:
+La configuración local recomendada usa `session.eager_spawn=false`, `agent.subagent_auto_max=8`, `taskrunner.max_parallel_steps=8` y `mcp_gateway.max_backends=16`. Para Knowledge, `kiro-a-config` y `kiro-b-config` aplican `knowledge.max_sources=100`, `knowledge.extraction_pool_size=1` y `knowledge.folder_ingest_chunk_budget=25`. Estos valores se guardan en los volúmenes separados `kiro-a-home` y `kiro-b-home`; los comandos siguientes inspeccionan Kiro A:
 
 ```bash
-docker exec kirocrew kirocrew config get session.eager_spawn
-docker exec kirocrew kirocrew config get agent.subagent_auto_max
-docker exec kirocrew kirocrew config get taskrunner.max_parallel_steps
-docker exec kirocrew kirocrew config get mcp_gateway.max_backends
-docker exec kirocrew kirocrew config get knowledge.max_sources
-docker exec kirocrew kirocrew config get knowledge.extraction_pool_size
-docker exec kirocrew kirocrew config get knowledge.folder_ingest_chunk_budget
+docker exec kiro-a kirocrew config get session.eager_spawn
+docker exec kiro-a kirocrew config get agent.subagent_auto_max
+docker exec kiro-a kirocrew config get taskrunner.max_parallel_steps
+docker exec kiro-a kirocrew config get mcp_gateway.max_backends
+docker exec kiro-a kirocrew config get knowledge.max_sources
+docker exec kiro-a kirocrew config get knowledge.extraction_pool_size
+docker exec kiro-a kirocrew config get knowledge.folder_ingest_chunk_budget
 ```
 
 Los valores se pueden cambiar en `.env` y reaplicar con `make configure`. Bajar
@@ -253,32 +290,99 @@ por lotes.
 El error `Request initialize timed out after 30s` ocurre durante el handshake ACP,
 antes de procesar el mensaje. El runtime local construido por
 `Dockerfile.kirocrew` eleva ese presupuesto a `KIROCREW_ACP_INIT_TIMEOUT_SECS`
-(120 segundos por defecto). No confundirlo con `chat_turn_timeout_secs`, que
+(120 segundos por defecto) y lo aplica en el call site de `initialize`
+(ver ADR-006 y ADR-008). No confundirlo con `chat_turn_timeout_secs`, que
 controla la duración del turno después de inicializar la sesión.
 
 ```bash
-docker exec kirocrew kirocrew config get agent.session_start_timeout_secs
-docker inspect kirocrew --format '{{range .Config.Env}}{{println .}}{{end}}' | grep KIROCREW_ACP_INIT_TIMEOUT_SECS
+docker exec kiro-a kirocrew config get agent.session_start_timeout_secs
+docker inspect kiro-a kiro-b --format '{{.Name}} {{range .Config.Env}}{{println .}}{{end}}' | grep KIROCREW_ACP_INIT_TIMEOUT_SECS
 ```
 
-## GitHub CLI dentro de KiroCrew
-
-GitHub CLI se instala mediante el sidecar `gh-cli`; no se instala en Windows ni dentro de la imagen base. Configura un token local en `.env`:
-
-```dotenv
-GH_TOKEN=ghp_your-token-here
-```
-
-Nunca publiques ese valor ni lo incluyas en `.env.example`. Después de recrear el stack:
+Si el mensaje muestra el valor configurado (p.ej. `timed out after 240s`), el
+handshake está tardando de verdad. En las mediciones de referencia con el host
+despejado, `initialize` responde en ~2s y los MCP de Kiro Crew en ~1s, así que
+un timeout al presupuesto completo casi siempre indica contención del host, no
+la ruta del proyecto ni Knowledge. Diagnóstico recomendado:
 
 ```bash
-docker compose up -d --force-recreate
-docker exec kirocrew gh --version
-docker exec kirocrew gh auth status
-docker exec kirocrew gh repo list --limit 3
+docker stats --no-stream
+docker logs kiro-a --since 30m 2>&1 | Select-String "MCP probe failed|timed out"
 ```
 
-Si un token fue expuesto, revócalo en GitHub y genera uno nuevo antes de continuar.
+Si otros contenedores consumen CPU de forma sostenida, limítalos en lugar de
+detenerlos (`docker update --cpus 1.0 <contenedor>`). Como optimización
+adicional, `PROJECTS_BASE` rinde mejor en una ruta nativa de WSL2 que en un
+bind-mount de Windows (`C:\...`); no es requisito, pero reduce la latencia de
+I/O con muchos archivos pequeños.
+
+## Enmascarado del árbol de proyectos
+
+Recorrer directorios sobre el bind-mount de Windows cuesta ~1 ms por entrada. Un
+repositorio con un `node_modules` grande convierte cualquier recorrido del árbol
+en una operación de minutos que deja al gateway sin event loop, y el síntoma es
+`Request initialize timed out`. En `premium-prb/engineering-governance` el
+recorrido completo eran 58 213 archivos en 64.1 s, de los cuales `node_modules`
+aportaba 53 039 archivos y 57.1 s.
+
+`make masks` escanea `PROJECTS_BASE` y genera `docker-compose.override.yml`
+montando un `tmpfs` vacío sobre cada directorio de dependencias o caché, así el
+contenedor no los ve y ningún recorrido desciende en ellos. Con las máscaras
+activas ese mismo recorrido baja a 2 471 archivos en 6.3 s. Ver ADR-009.
+
+```bash
+make masks                                              # regenerar el override
+make mask-report PROJECT=premium-prb/engineering-governance   # medir el árbol
+```
+
+`up`, `restart` y `update` encadenan `masks`, de modo que el override nunca queda
+obsoleto. Después de clonar un repositorio o instalar dependencias en el host,
+ejecuta `make masks` para crear la máscara correspondiente.
+
+La lista se controla con `KIROCREW_MASK_DIRS` en `.env`. `.git`, `build` y `dist`
+se dejan visibles a propósito porque su costo es marginal y el agente los
+necesita. Los directorios enmascarados aparecen **vacíos** dentro del
+contenedor: si un flujo necesita las dependencias reales, quita ese nombre de la
+lista y vuelve a generar. Un `npm install` dentro del contenedor escribe en el
+`tmpfs` (`KIROCREW_MASK_TMPFS_SIZE`, 1 GB por defecto) y no se comparte con
+Windows ni sobrevive al reinicio.
+
+`docker-compose.override.yml` es un archivo generado y específico del host; está
+en `.gitignore` y no debe editarse a mano.
+
+## Identidad de GitHub por instancia
+
+Cada instancia autentica con su propia cuenta de GitHub (ADR-010). Configura
+los PATS en `.env`:
+
+```dotenv
+GH_USER_A=Jerson-Martinez-JEM0925
+GH_TOKEN_A=ghp_...
+GH_USER_B=jersonmartinez
+GH_TOKEN_B=ghp_...
+
+# Opcional:
+#GH_EMAIL_A=...   # por defecto: <GH_USER_A>@users.noreply.github.com
+#GH_EMAIL_B=...
+```
+
+Al arrancar, `kiro-a-config` y `kiro-b-config` escriben `~/.gitconfig` en el
+volumen persistente con `user.name`, `user.email` y el helper de credenciales
+para `gh`. `gh` no requiere `gh auth login`: lee `GH_TOKEN` en cada invocación,
+por lo que nada se pierde al reiniciar.
+
+```bash
+make gh-identity    # verifica ambas cuentas
+make gh-test        # detalla versión, auth, login, git name/email
+```
+
+Importante:
+
+- Los PATS **nunca** deben ir a Git; `.env` y `docker-compose.override.yml`
+  están en `.gitignore`.
+- Cada instancia empuja como su cuenta. Asegúrate de que el repositorio remoto
+  use HTTPS (`https://github.com/...`) para aprovechar el helper de `gh`.
+- Si un token expira, cámbialo en `.env` y reinicia el contenedor correspondiente.
 
 ## Node.js dentro de KiroCrew
 
@@ -286,23 +390,27 @@ Node.js 20, npm, npx y corepack se inyectan mediante el servicio init `node-cli`
 
 ```bash
 docker compose run --rm make node-test
-docker exec kirocrew bash -l -c 'node --version && npm --version && npx --version'
+docker exec kiro-a bash -l -c 'node --version && npm --version && npx --version'
 ```
 
 El volumen `node-bin` es una caché de herramientas; puedes recrearlo con `docker compose up -d --force-recreate` si cambias la versión o el contenido del sidecar. El servicio Dockerizado de Make prioriza las variables que recibe del Compose sobre los valores de `.env`, para conservar correctamente las rutas host al ejecutar Compose anidado.
 
 ## Persistencia y backup
 
-El volumen `kirocrew-home` contiene la memoria, configuración, skills e historial de KiroCrew y persiste entre recreaciones del contenedor.
+Los volúmenes `kiro-a-home` y `kiro-b-home` contienen, respectivamente, la memoria,
+configuración, credenciales e historial de Kiro A y Kiro B. Ambos persisten entre recreaciones.
 
-No ejecutes `docker volume rm kirocrew-home` ni `docker compose down -v` sin un backup. Para crear uno:
+No ejecutes `docker volume rm kiro-a-home kiro-b-home` ni `docker compose down -v` sin un backup.
+Para crear backups de ambas instancias:
 
 ```bash
-docker compose down
-docker run --rm \
-  -v kirocrew-home:/source \
-  -v "$PWD":/backup alpine \
-  tar czf /backup/kirocrew-home-backup.tgz -C /source .
+make backup
+```
+
+También puedes ejecutar el equivalente desde el servicio Dockerizado de Make:
+
+```bash
+docker compose run --rm make backup
 ```
 
 ## Troubleshooting
@@ -342,7 +450,7 @@ ls -la "$PROJECTS_BASE"
 Si editaste `.env`, recrea el servicio para aplicar el montaje:
 
 ```bash
-docker compose up -d --force-recreate kirocrew
+docker compose up -d --force-recreate kiro-a kiro-b
 ```
 
 ### Volumen corrupto o estado inconsistente
