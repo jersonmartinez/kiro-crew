@@ -6,9 +6,9 @@ La configuración no contiene rutas ni nombres de proyectos específicos de ning
 
 ## Qué incluye
 
-- Imagen oficial `ghcr.io/kirodotdev/kirocrew:stable`.
+- Imagen oficial de KiroCrew fijada por digest en `.env.example` para builds reproducibles.
 - Servicio init `docker-cli` basado en `docker:cli`.
-- Servicio init `node-cli` basado en `node:20-slim` (Node.js, npm, npx).
+- Servicio init `node-cli` basado en `node:22-slim` (Node.js, npm, npx).
 - Servicio init `gh-cli` basado en `debian:trixie-slim` (GitHub CLI).
 - Docker CLI y el plugin Compose inyectados mediante el volumen `docker-bin`.
 - Node.js CLI inyectado mediante el volumen `node-bin`.
@@ -44,6 +44,8 @@ KiroCrew se ejecuta como el usuario no-root `kirocrew` (UID 1000). El Compose le
 - La red `kirocrew-net` para comunicarse con stacks de proyectos que se conecten explícitamente.
 
 No se usa `privileged: true`, `sudo` ni `NET_ADMIN`. Para que el sandbox anidado de Kiro Crew funcione dentro de Docker Desktop/WSL2, Kiro A y Kiro B usan `seccomp:unconfined` y `apparmor:unconfined`; esto reduce el aislamiento y requiere mantener los dashboards limitados a localhost. El target `access-test` permite comprobar las capacidades del contenedor.
+
+`kirocrew-seccomp.json` se conserva como perfil experimental documentado, pero no se aplica por defecto: su compatibilidad debe probarse en cada combinación de Docker Desktop, WSL2 y arquitectura antes de reemplazar `unconfined`. Consulta [`docs/security.md`](docs/security.md) para el modelo de amenazas y la configuración de credenciales.
 
 ## Setup rápido
 
@@ -459,7 +461,23 @@ Realiza primero el backup descrito arriba. Elimina o restaura el volumen únicam
 
 ### Chromium / Playwright
 
+La imagen instala `ffmpeg`, `libreoffice` (incluidos Impress y Draw), las bibliotecas de ejecución de Chromium y `@playwright/cli` 0.1.18 para ambos agentes. El sidecar `node-cli` descarga Chromium en el volumen persistente `playwright-browsers` y cada instancia registra las skills en `/home/kirocrew/.agents/skills/playwright-cli`.
+
+El wrapper selecciona Chromium automáticamente cuando se ejecuta `playwright-cli open`; también puedes indicarlo explícitamente:
+
+```bash
+docker compose exec kiro-a playwright-cli open http://host.docker.internal:3000
+docker compose exec kiro-b playwright-cli open http://host.docker.internal:3000 --browser=chromium
+```
+
 `SYS_ADMIN` está incluido porque el sandbox de Chromium lo requiere. Si el browser mode falla, revisa que ninguna configuración externa haya eliminado la capability y consulta los logs de KiroCrew.
+
+Para PPTX Maker, LibreOffice se ejecuta en modo headless dentro de ambos contenedores para generar miniaturas y previsualizaciones PDF:
+
+```bash
+docker compose exec kiro-a libreoffice --headless --version
+docker compose exec kiro-b libreoffice --headless --version
+```
 
 ## Estructura
 
@@ -471,22 +489,33 @@ Realiza primero el backup descrito arriba. Elimina o restaura el volumen únicam
 ├── .env.example
 ├── Makefile
 ├── projects/.gitkeep
-├── scripts/add-project.sh
-├── tasks/plan.md
+├── scripts/
+│   ├── add-project.sh
+│   └── generate-mask-override.sh
+├── tests/validate.sh
+├── .github/workflows/validate.yml
 └── docs/
+    ├── security.md
     └── decisions/
         ├── ADR-001-docker-cli-sidecar.md
         ├── ADR-002-node-cli-sidecar.md
         ├── ADR-003-shared-network.md
-        └── ADR-004-gh-cli-sidecar.md
+        └── ADR-010-per-instance-github-identity.md
 ```
+
+## Licencia
+
+Este proyecto se distribuye bajo la licencia MIT. Consulta [`LICENSE`](LICENSE).
 
 ## Contribuir
 
 Las configuraciones públicas deben usar placeholders y permanecer libres de rutas personales, nombres de proyectos privados y credenciales. Usa `.env` para tus valores locales; está excluido de Git. Antes de abrir un PR, ejecuta:
 
 ```bash
-docker compose config --quiet
+./tests/validate.sh
 docker compose --profile tools build make
 git diff --check
 ```
+
+La validación no inicia KiroCrew ni requiere credenciales. La prueba completa de runtime
+requiere Docker Desktop/WSL2 y se debe ejecutar siguiendo el setup rápido.

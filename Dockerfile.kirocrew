@@ -1,8 +1,26 @@
-ARG BASE_IMAGE=ghcr.io/kirodotdev/kirocrew:stable
+ARG BASE_IMAGE=ghcr.io/kirodotdev/kirocrew@sha256:368ff37d3d3cf82d972eeb15fba1128fc09cb78b0004ddd19c39e9d3b7a9669a
 FROM ${BASE_IMAGE}
 
 USER root
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ffmpeg \
+        libreoffice \
+        libatk-bridge2.0-0 \
+        libatk1.0-0 \
+        libatspi2.0-0 \
+        libcups2 \
+        libnspr4 \
+        libnss3 \
+        libxcomposite1 \
+        libxdamage1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# The constant alone is inert: the `initialize` handshake calls
+# _send_and_await without a timeout, falling back to _REQUEST_TIMEOUT (30s).
+# Pass the (now env-driven) _INIT_TIMEOUT at the call site so the budget
+# actually applies to the handshake.
 RUN python3 - <<'PY'
 from pathlib import Path
 
@@ -13,18 +31,11 @@ new = '_INIT_TIMEOUT = float(os.environ.get("KIROCREW_ACP_INIT_TIMEOUT_SECS", "1
 if old not in text:
     raise SystemExit(f'Expected ACP timeout constant was not found in {path}')
 text = text.replace(old, new, 1)
-
-# The constant alone is inert: the `initialize` handshake calls
-# _send_and_await without a timeout, falling back to _REQUEST_TIMEOUT (30s).
-# Pass the (now env-driven) _INIT_TIMEOUT at the call site so the budget
-# actually applies to the handshake.
 call_old = '                },\n            )\n            self._can_load_session = bool('
 call_new = '                },\n                timeout=_INIT_TIMEOUT,\n            )\n            self._can_load_session = bool('
 if call_old not in text:
     raise SystemExit(f'Expected initialize call site was not found in {path}')
-text = text.replace(call_old, call_new, 1)
-
-path.write_text(text)
+path.write_text(text.replace(call_old, call_new, 1))
 PY
 
 USER kirocrew

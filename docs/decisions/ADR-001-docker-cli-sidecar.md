@@ -4,7 +4,7 @@
 Accepted
 
 ## Context
-La imagen `ghcr.io/kirodotdev/kirocrew:stable` incluye Python, Git y curl, pero no incluye Docker CLI. KiroCrew necesita ejecutar `docker compose` en los proyectos montados. El entorno objetivo es un bootstrap público para desarrollo local sobre Docker Desktop y WSL2.
+La imagen base de KiroCrew incluye Python, Git y curl, pero no incluye Docker CLI. KiroCrew necesita ejecutar `docker compose` en los proyectos montados. El entorno objetivo es un bootstrap público para desarrollo local sobre Docker Desktop y WSL2.
 
 ## Decision
 Usar un servicio `docker-cli` basado en `docker:cli`. El servicio copia el cliente Docker y el plugin Compose a un named volume `docker-bin`; `kirocrew` consume ese volumen en `/opt/docker-cli` y en la ruta estándar de plugins. `depends_on` espera que el servicio de copia finalice correctamente antes de iniciar KiroCrew.

@@ -19,14 +19,28 @@ services:
       - /bin/sh
       - -ec
       - |
-        mkdir -p /node-bin/bin /node-bin/lib
+        npm install --global --no-audit --no-fund @playwright/cli@0.1.18
+        mkdir -p /node-bin/bin /node-bin/lib /playwright-browsers
         cp /usr/local/bin/node /node-bin/bin/node
         cp -a /usr/local/lib/node_modules /node-bin/lib/
         ln -sf ../lib/node_modules/npm/bin/npm-cli.js /node-bin/bin/npm
         ln -sf ../lib/node_modules/npm/bin/npx-cli.js /node-bin/bin/npx
         ln -sf ../lib/node_modules/corepack/dist/corepack.js /node-bin/bin/corepack
+        rm -f /node-bin/bin/playwright-cli
+        printf '%s\n' \
+          '#!/bin/sh' \
+          'if [ "$$1" = open ]; then' \
+          '  browser_set=false' \
+          '  for arg in "$$@"; do case "$$arg" in --browser=*|--browser) browser_set=true;; esac; done' \
+          '  if [ "$$browser_set" = false ]; then set -- "$$@" --browser=chromium; fi' \
+          'fi' \
+          'exec /opt/node-cli/bin/node /opt/node-cli/lib/node_modules/@playwright/cli/playwright-cli.js "$$@"' \
+          > /node-bin/bin/playwright-cli
+        chmod +x /node-bin/bin/playwright-cli
+        PLAYWRIGHT_BROWSERS_PATH=/playwright-browsers playwright-cli install-browser chromium
     volumes:
       - node-bin:/node-bin
+      - playwright-browsers:/playwright-browsers
 
   gh-cli:
     image: debian:trixie-slim
@@ -66,6 +80,9 @@ services:
 
   kiro-a-config:
     image: ${KIROCREW_RUNTIME_IMAGE:-kirocrew-local:latest}
+    depends_on:
+      node-cli:
+        condition: service_completed_successfully
     entrypoint: ["/bin/sh", "-ec"]
     command:
       - |
@@ -73,6 +90,7 @@ services:
           curl -fsSL https://cli.kiro.dev/install | bash
         fi
         kirocrew setup --agent-only
+        playwright-cli install --skills=agents --global
         kirocrew config set knowledge.max_sources "$${KIROCREW_KNOWLEDGE_MAX_SOURCES}"
         kirocrew config set knowledge.extraction_pool_size "$${KIROCREW_KNOWLEDGE_EXTRACTION_POOL_SIZE}"
         kirocrew config set knowledge.folder_ingest_chunk_budget "$${KIROCREW_KNOWLEDGE_FOLDER_CHUNK_BUDGET}"
@@ -94,6 +112,9 @@ services:
       HOME: /home/kirocrew
       KIRO_HOME: /home/kirocrew/.kiro
       KIROCREW_HOME: /home/kirocrew/.kiro/crew
+      PATH: /opt/node-cli/bin:/home/kirocrew/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      NODE_PATH: /opt/node-cli/lib/node_modules
+      PLAYWRIGHT_BROWSERS_PATH: /opt/playwright-browsers
       KIROCREW_KNOWLEDGE_MAX_SOURCES: ${KIROCREW_KNOWLEDGE_MAX_SOURCES:-100}
       KIROCREW_KNOWLEDGE_EXTRACTION_POOL_SIZE: ${KIROCREW_KNOWLEDGE_EXTRACTION_POOL_SIZE:-1}
       KIROCREW_KNOWLEDGE_FOLDER_CHUNK_BUDGET: ${KIROCREW_KNOWLEDGE_FOLDER_CHUNK_BUDGET:-25}
@@ -101,9 +122,14 @@ services:
       GIT_USER_EMAIL: ${GH_EMAIL_A:-${GH_USER_A:-kiro-a}@users.noreply.github.com}
     volumes:
       - kiro-a-home:/home/kirocrew
+      - node-bin:/opt/node-cli:ro
+      - playwright-browsers:/opt/playwright-browsers:ro
 
   kiro-b-config:
     image: ${KIROCREW_RUNTIME_IMAGE:-kirocrew-local:latest}
+    depends_on:
+      node-cli:
+        condition: service_completed_successfully
     entrypoint: ["/bin/sh", "-ec"]
     command:
       - |
@@ -111,6 +137,7 @@ services:
           curl -fsSL https://cli.kiro.dev/install | bash
         fi
         kirocrew setup --agent-only
+        playwright-cli install --skills=agents --global
         kirocrew config set knowledge.max_sources "$${KIROCREW_KNOWLEDGE_MAX_SOURCES}"
         kirocrew config set knowledge.extraction_pool_size "$${KIROCREW_KNOWLEDGE_EXTRACTION_POOL_SIZE}"
         kirocrew config set knowledge.folder_ingest_chunk_budget "$${KIROCREW_KNOWLEDGE_FOLDER_CHUNK_BUDGET}"
@@ -132,6 +159,9 @@ services:
       HOME: /home/kirocrew
       KIRO_HOME: /home/kirocrew/.kiro
       KIROCREW_HOME: /home/kirocrew/.kiro/crew
+      PATH: /opt/node-cli/bin:/home/kirocrew/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      NODE_PATH: /opt/node-cli/lib/node_modules
+      PLAYWRIGHT_BROWSERS_PATH: /opt/playwright-browsers
       KIROCREW_KNOWLEDGE_MAX_SOURCES: ${KIROCREW_KNOWLEDGE_MAX_SOURCES:-100}
       KIROCREW_KNOWLEDGE_EXTRACTION_POOL_SIZE: ${KIROCREW_KNOWLEDGE_EXTRACTION_POOL_SIZE:-1}
       KIROCREW_KNOWLEDGE_FOLDER_CHUNK_BUDGET: ${KIROCREW_KNOWLEDGE_FOLDER_CHUNK_BUDGET:-25}
@@ -139,6 +169,8 @@ services:
       GIT_USER_EMAIL: ${GH_EMAIL_B:-${GH_USER_B:-kiro-b}@users.noreply.github.com}
     volumes:
       - kiro-b-home:/home/kirocrew
+      - node-bin:/opt/node-cli:ro
+      - playwright-browsers:/opt/playwright-browsers:ro
 
   kiro-a:
     image: ${KIROCREW_RUNTIME_IMAGE:-kirocrew-local:latest}
@@ -166,6 +198,7 @@ services:
       KIROCREW_BIND: 0.0.0.0
       KIRO_HOME: /home/kirocrew/.kiro
       KIROCREW_HOME: /home/kirocrew/.kiro/crew
+      PLAYWRIGHT_BROWSERS_PATH: /opt/playwright-browsers
       TZ: ${TZ}
       PATH: /opt/docker-cli:/opt/node-cli/bin:/opt/gh-cli:/home/kirocrew/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       NODE_PATH: /opt/node-cli/lib/node_modules
@@ -183,6 +216,7 @@ services:
       - docker-bin:/usr/local/libexec/docker:ro
       - docker-profile:/etc/profile.d:ro
       - node-bin:/opt/node-cli:ro
+      - playwright-browsers:/opt/playwright-browsers:ro
       - gh-bin:/opt/gh-cli:ro
       - /var/run/docker.sock:/var/run/docker.sock
       - ${PROJECTS_BASE}:/home/kirocrew/projects
@@ -232,6 +266,7 @@ services:
       KIROCREW_BIND: 0.0.0.0
       KIRO_HOME: /home/kirocrew/.kiro
       KIROCREW_HOME: /home/kirocrew/.kiro/crew
+      PLAYWRIGHT_BROWSERS_PATH: /opt/playwright-browsers
       TZ: ${TZ}
       PATH: /opt/docker-cli:/opt/node-cli/bin:/opt/gh-cli:/home/kirocrew/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       NODE_PATH: /opt/node-cli/lib/node_modules
@@ -246,6 +281,7 @@ services:
       - docker-bin:/usr/local/libexec/docker:ro
       - docker-profile:/etc/profile.d:ro
       - node-bin:/opt/node-cli:ro
+      - playwright-browsers:/opt/playwright-browsers:ro
       - gh-bin:/opt/gh-cli:ro
       - /var/run/docker.sock:/var/run/docker.sock
       - ${PROJECTS_BASE}:/home/kirocrew/projects
@@ -282,4 +318,5 @@ volumes:
   docker-bin:
   docker-profile:
   node-bin:
+  playwright-browsers:
   gh-bin:
