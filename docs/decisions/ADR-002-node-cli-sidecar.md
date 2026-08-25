@@ -25,7 +25,7 @@ Inject Node.js 22 using the same sidecar pattern as `docker-cli` (ADR-001):
 ## Consequences
 
 - Node.js is available without rebuilding the KiroCrew image.
-- Upgrading Node means changing the tag in `docker-compose.yml` (e.g., `node:22-slim`).
+- Upgrading Node means changing the tag in `compose/shared.yml` (e.g., `node:22-slim`).
 - Per-project `node_modules` still live inside the project directory (bind-mounted).
 - The sidecar adds ~2s to first `docker compose up` but is cached on subsequent starts.
 

@@ -109,11 +109,15 @@ Si ejecutas `docker compose` desde PowerShell con una ruta `/mnt/c/...`, Docker 
 | Comando | Descripción |
 | --- | --- |
 | `make up` | Aplica la configuración segura y luego inicia KiroCrew en segundo plano. |
+| `make up-a` | Reconstruye e inicia solo Kiro A desde la configuración central. |
+| `make up-b` | Reconstruye e inicia solo Kiro B desde la configuración central. |
 | `make configure` | Reaplica los valores de concurrencia de Knowledge sin borrar el volumen. |
 | `make down` | Detiene y elimina los contenedores, sin borrar volúmenes. |
 | `make restart` | Detiene y vuelve a iniciar el stack. |
 | `make logs` | Sigue los logs de KiroCrew. |
+| `make logs-a` / `make logs-b` | Sigue los logs de una instancia concreta. |
 | `make shell` | Abre un `bash` interactivo dentro de KiroCrew. |
+| `make shell-a` / `make shell-b` | Abre un shell en una instancia concreta. |
 | `make status` | Muestra el estado de Compose y el health del contenedor. |
 | `make update` | Descarga la imagen base, reconstruye el runtime local y recrea KiroCrew. |
 | `make docker-test` | Ejecuta `docker ps` dentro de KiroCrew. |
@@ -121,6 +125,8 @@ Si ejecutas `docker compose` desde PowerShell con una ruta `/mnt/c/...`, Docker 
 | `make token` | Genera una URL autenticada para el dashboard. |
 | `make node-test` | Verifica Node.js y npm dentro de KiroCrew. |
 | `make gh-test` | Verifica GitHub CLI y su estado de autenticación. |
+| `make gcloud-test` | Verifica Google Cloud CLI, cuentas y configuración activa. |
+| `make kubectl-test` | Verifica kubectl y el plugin de autenticación para GKE. |
 | `make kiro-login-a` | Inicia el login interactivo de Kiro CLI para Kiro A. |
 | `make kiro-login-b` | Inicia el login interactivo de Kiro CLI para Kiro B. |
 | `make backup` | Crea un backup timestamped del estado persistente. |
@@ -176,7 +182,7 @@ PROJECTS_BASE/<project-name>
 
 Por ejemplo, un repositorio ubicado en `./projects/demo-app` aparecerá dentro de KiroCrew como `/home/kirocrew/projects/demo-app`.
 
-El montaje de todo el directorio es práctico para un bootstrap. Si necesitas menor privilegio, reemplázalo en `docker-compose.yml` por montajes explícitos:
+El montaje de todo el directorio es práctico para un bootstrap. Si necesitas menor privilegio, reemplázalo en `compose/kiro-a.yml` y `compose/kiro-b.yml` por montajes explícitos:
 
 ```yaml
       - ${PROJECTS_BASE}/demo-app:/home/kirocrew/projects/demo-app
@@ -484,6 +490,10 @@ docker compose exec kiro-b libreoffice --headless --version
 ```text
 .
 ├── docker-compose.yml
+├── compose/
+│   ├── shared.yml
+│   ├── kiro-a.yml
+│   └── kiro-b.yml
 ├── Dockerfile.make
 ├── .dockerignore
 ├── .env.example

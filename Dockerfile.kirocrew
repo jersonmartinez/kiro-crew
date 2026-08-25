@@ -5,7 +5,10 @@ USER root
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
         ffmpeg \
+        gnupg \
         libreoffice \
         libatk-bridge2.0-0 \
         libatk1.0-0 \
@@ -15,6 +18,20 @@ RUN apt-get update \
         libnss3 \
         libxcomposite1 \
         libxdamage1 \
+    && install -d -m 0755 /usr/share/keyrings \
+    && curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg \
+        | gpg --dearmor --yes -o /usr/share/keyrings/cloud.google.gpg \
+    && printf '%s\n' \
+        'deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main' \
+        > /etc/apt/sources.list.d/google-cloud-sdk.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+        google-cloud-cli \
+        google-cloud-sdk-gke-gcloud-auth-plugin \
+        kubectl \
+    && gcloud --version \
+    && kubectl version --client \
+    && gke-gcloud-auth-plugin --version \
     && rm -rf /var/lib/apt/lists/*
 
 # The constant alone is inert: the `initialize` handshake calls

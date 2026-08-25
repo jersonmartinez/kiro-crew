@@ -17,7 +17,7 @@ Añadir el servicio idempotente `kirocrew-config` al Compose. Antes de iniciar `
 - `knowledge.extraction_pool_size=1`
 - `knowledge.folder_ingest_chunk_budget=25`
 
-Los valores tienen defaults en `docker-compose.yml` y pueden sobrescribirse desde `.env` mediante las variables `KIROCREW_KNOWLEDGE_*`. El target `make configure` permite reaplicarlos sin eliminar el volumen.
+Los valores tienen defaults en `compose/kiro-a.yml` y `compose/kiro-b.yml` y pueden sobrescribirse desde `.env` mediante las variables `KIROCREW_KNOWLEDGE_*`. El target `make configure` permite reaplicarlos sin eliminar el volumen.
 
 La indexación de fuentes grandes debe procesarse por lotes y no confirmarse masivamente en paralelo. El ajuste reduce el throughput máximo para preservar la capacidad de chat ACP.
 

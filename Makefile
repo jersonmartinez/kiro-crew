@@ -2,12 +2,18 @@
 
 PROJECT_PROFILE ?= dev
 
-.PHONY: up configure down restart logs shell status update masks mask-report docker-test node-test gh-test kiro-login kiro-login-a kiro-login-b access-test token token-a token-b backup project-up project-down
+.PHONY: up up-a up-b configure down restart logs logs-a logs-b shell shell-a shell-b status update masks mask-report docker-test node-test gh-test gcloud-test kubectl-test kiro-login kiro-login-a kiro-login-b access-test token token-a token-b backup project-up project-down
 
 INSTANCE ?= kiro-a
 
 up: masks
 	docker compose up -d --build --force-recreate kiro-a-config kiro-b-config kiro-a kiro-b
+
+up-a: masks
+	docker compose up -d --build --force-recreate kiro-a-config kiro-a
+
+up-b: masks
+	docker compose up -d --build --force-recreate kiro-b-config kiro-b
 
 # Regenerate docker-compose.override.yml so dependency directories under
 # PROJECTS_BASE are masked with empty tmpfs mounts (see ADR-009). Run this
@@ -36,8 +42,20 @@ restart: masks
 logs:
 	docker compose logs -f kiro-a kiro-b
 
+logs-a:
+	docker compose logs -f kiro-a
+
+logs-b:
+	docker compose logs -f kiro-b
+
 shell:
 	docker compose exec $(INSTANCE) bash
+
+shell-a:
+	docker compose exec kiro-a bash
+
+shell-b:
+	docker compose exec kiro-b bash
 
 status:
 	docker compose ps
@@ -62,6 +80,15 @@ gh-test:
 	docker compose exec $(INSTANCE) gh api user --jq .login
 	docker compose exec $(INSTANCE) git config --global --get user.name
 	docker compose exec $(INSTANCE) git config --global --get user.email
+
+gcloud-test:
+	docker compose exec $(INSTANCE) gcloud --version
+	docker compose exec $(INSTANCE) gcloud auth list
+	docker compose exec $(INSTANCE) gcloud config list
+
+kubectl-test:
+	docker compose exec $(INSTANCE) kubectl version --client
+	docker compose exec $(INSTANCE) gke-gcloud-auth-plugin --version
 
 # Confirm each instance is authenticated as its own GitHub account (ADR-010).
 gh-identity:
