@@ -58,7 +58,7 @@ services:
     profiles:
       - tools
     build:
-      context: ..
+      context: .
       dockerfile: Dockerfile.make
     working_dir: /workspace
     environment:
@@ -69,7 +69,7 @@ services:
       KIROCREW_MASK_MAX_DEPTH: ${KIROCREW_MASK_MAX_DEPTH:-4}
       KIROCREW_MASK_TMPFS_SIZE: ${KIROCREW_MASK_TMPFS_SIZE:-1g}
     volumes:
-      - ..:/workspace
+      - .:/workspace
       - /var/run/docker.sock:/var/run/docker.sock
       - type: bind
         source: ${PROJECTS_BASE}

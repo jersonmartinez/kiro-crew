@@ -18,4 +18,17 @@ jobs:
       - name: Validate Compose and repository files
         run: ./tests/validate.sh
       - name: Build Make helper image
-        run: docker compose --profile tools build make
+        run: docker compose --env-file .env.example --profile tools build make
+      - name: Build KiroCrew runtime image
+        run: docker compose --env-file .env.example build kiro-a kiro-b
+      - name: Verify GCP and GKE CLI tools
+        run: |
+          docker run --rm --entrypoint /bin/sh kirocrew-local:latest -ec '
+            set -eu
+            command -v gcloud >/dev/null
+            command -v kubectl >/dev/null
+            command -v gke-gcloud-auth-plugin >/dev/null
+            gcloud --version >/dev/null
+            kubectl version --client >/dev/null
+            gke-gcloud-auth-plugin --version >/dev/null
+          '

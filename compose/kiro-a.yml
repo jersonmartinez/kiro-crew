@@ -49,7 +49,7 @@ services:
   kiro-a:
     image: ${KIROCREW_RUNTIME_IMAGE:-kirocrew-local:latest}
     build:
-      context: ..
+      context: .
       dockerfile: Dockerfile.kirocrew
       args:
         BASE_IMAGE: ${KIROCREW_IMAGE}
