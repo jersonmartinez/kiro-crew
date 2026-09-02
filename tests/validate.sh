@@ -21,6 +21,8 @@ grep -F -- '*-home-backup-*.tgz' .gitignore >/dev/null
 grep -F -- 'google-cloud-cli' Dockerfile.kirocrew >/dev/null
 grep -F -- 'google-cloud-sdk-gke-gcloud-auth-plugin' Dockerfile.kirocrew >/dev/null
 grep -F -- 'kubectl' Dockerfile.kirocrew >/dev/null
+grep -F -- 'kiro_crew/sandbox.py' Dockerfile.kirocrew >/dev/null
+grep -F -- 'Expected {expected} gcloud sandbox entries' Dockerfile.kirocrew >/dev/null
 grep -F -- 'compose/shared.yml' docker-compose.yml >/dev/null
 grep -F -- 'CLOUDSDK_CONFIG: /home/kirocrew/.config/gcloud' compose/kiro-a.yml >/dev/null
 grep -F -- 'CLOUDSDK_CONFIG: /home/kirocrew/.config/gcloud' compose/kiro-b.yml >/dev/null

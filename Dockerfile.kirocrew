@@ -53,6 +53,16 @@ call_new = '                },\n                timeout=_INIT_TIMEOUT,\n        
 if call_old not in text:
     raise SystemExit(f'Expected initialize call site was not found in {path}')
 path.write_text(text.replace(call_old, call_new, 1))
+
+# Allow ACP shells to use the instance's gcloud configuration. Keep all other
+# credential paths protected by the sandbox launcher.
+sandbox_path = Path('/usr/local/lib/python3.12/site-packages/kiro_crew/sandbox.py')
+sandbox_text = sandbox_path.read_text()
+needle = '    ".config/gcloud",\n'
+expected = 3
+if sandbox_text.count(needle) != expected:
+    raise SystemExit(f'Expected {expected} gcloud sandbox entries in {sandbox_path}')
+sandbox_path.write_text(sandbox_text.replace(needle, '', expected))
 PY
 
 USER kirocrew

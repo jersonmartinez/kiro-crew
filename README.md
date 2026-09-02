@@ -23,6 +23,29 @@ La configuración no contiene rutas ni nombres de proyectos específicos de ning
 - Makefile y helper para las operaciones habituales.
 - Servicio opcional `make` para ejecutar Make dentro de Docker sin instalarlo en el host.
 
+## Diagramas de arquitectura
+
+Los diagramas interactivos generados con Archify se mantienen en [`docs/architecture/`](docs/architecture/):
+
+- [Arquitectura](docs/architecture/kiro-crew-architecture.html)
+- [Workflow de arranque, prompts y recuperación](docs/architecture/kiro-crew-workflow.html)
+- [Secuencia Devin → Docker Desktop → WSL → Kiro Crew](docs/architecture/kiro-crew-sequence.html)
+- [Dataflow de proyectos, mounts y configuración](docs/architecture/kiro-crew-dataflow.html)
+
+Las especificaciones JSON y la evidencia de validación del navegador están junto a cada HTML. Los HTML son artefactos independientes: pueden abrirse localmente o servirse desde un servidor estático; GitHub puede mostrar el archivo como código en vez de ejecutar su contenido.
+
+## Autenticación GCP dentro de ACP
+
+`Dockerfile.kirocrew` conserva la configuración `gcloud` de cada instancia y permite que los shells ACP utilicen `/home/kirocrew/.config/gcloud`. El login debe realizarse por separado en cada volumen persistente (`kiro-a-home` y `kiro-b-home`):
+
+```bash
+docker compose exec -it kiro-a gcloud auth login
+docker compose exec -it kiro-b gcloud auth login
+docker compose exec kiro-b gcloud config set project PROJECT_ID
+```
+
+Las credenciales no se incluyen en la imagen, el repositorio ni los archivos `.env.example`; solo persisten en el volumen local de la instancia. Esta excepción permite acceso GCP desde el agente y, por ello, debe usarse únicamente con cuentas y permisos mínimos necesarios.
+
 ## Prerrequisitos
 
 - Docker Desktop instalado y ejecutándose.
