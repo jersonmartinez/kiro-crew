@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "Kiro Crew Projects, Mounts, Configuration, and Runtime Dataflow",
+    "output": "kiro-crew-dataflow.html",
+    "viewBox": [1080, 900],
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "project-flow", "label": "Project flow", "focus": ["host", "mount", "workspace", "agent", "result"], "note": "Follow project files from the Windows host into an agent prompt and result." },
+      { "id": "config-flow", "label": "Configuration flow", "focus": ["env", "compose", "tools", "config", "home", "agent"], "note": "Follow environment values and prepared binaries into an isolated agent home." },
+      { "id": "failure-flow", "label": "Mount failure flow", "focus": ["mount", "error", "diagnostics"], "note": "Isolate the I/O error path at the Docker Desktop and WSL mount boundary." }
+    ]
+  },
+  "stages": [
+    { "label": "Host inputs" },
+    { "label": "Integration" },
+    { "label": "Container runtime" },
+    { "label": "Agent workspace" },
+    { "label": "Result + recovery" }
+  ],
+  "nodes": [
+    { "id": "env", "type": "security", "label": ".env", "sublabel": "ports", "stage": 0, "row": 0, "tag": "configuration" },
+    { "id": "host", "type": "external", "label": "Host tree", "sublabel": "Repositories", "stage": 0, "row": 3, "tag": "source files" },
+    { "id": "compose", "type": "backend", "label": "Compose", "sublabel": "shared + agents", "stage": 1, "row": 0 },
+    { "id": "mount", "type": "cloud", "label": "Mount proxy", "sublabel": "bind + WSL", "stage": 1, "row": 3 },
+    { "id": "tools", "type": "backend", "label": "Tool volumes", "sublabel": "docker + node + gh", "stage": 2, "row": 0 },
+    { "id": "config", "type": "backend", "label": "Agent config", "sublabel": "setup + settings", "stage": 2, "row": 1 },
+    { "id": "home", "type": "database", "label": "Agent home", "sublabel": "named volume", "stage": 3, "row": 0, "tag": "persistent" },
+    { "id": "workspace", "type": "external", "label": "Workspace", "sublabel": "projects / Factib", "stage": 3, "row": 3 },
+    { "id": "agent", "type": "backend", "label": "Kiro session", "sublabel": "prompt + ACP", "stage": 3, "row": 1 },
+    { "id": "result", "type": "frontend", "label": "Result", "sublabel": "response + files", "stage": 4, "row": 1 },
+    { "id": "error", "type": "security", "label": "I/O error", "sublabel": "errno 5", "stage": 4, "row": 3 },
+    { "id": "diagnostics", "type": "database", "label": "Evidence", "sublabel": "container logs", "stage": 4, "row": 4 }
+  ],
+  "flows": [
+    { "from": "env", "to": "compose", "label": "runtime config", "classification": "ports + image", "variant": "emphasis", "route": "straight" },
+    { "from": "host", "to": "mount", "label": "project files", "classification": "Windows bind", "variant": "emphasis", "route": "straight" },
+    { "from": "compose", "to": "tools", "label": "prepare tools", "classification": "completed services", "variant": "dashed", "route": "straight", "labelDy": -30 },
+    { "from": "tools", "to": "home", "label": "mounted binaries", "classification": "shared volumes", "variant": "default", "route": "straight" },
+    { "from": "mount", "to": "workspace", "label": "bind project", "classification": "working tree", "variant": "emphasis", "route": "straight", "labelDy": -53 },
+    { "from": "workspace", "to": "agent", "label": "read + write", "classification": "project data", "variant": "emphasis", "route": "top-channel", "labelDy": 65 },
+    { "from": "agent", "to": "result", "label": "response", "classification": "dashboard output", "variant": "emphasis", "route": "straight" },
+    { "from": "mount", "to": "error", "label": "errno 5", "classification": "I/O failure", "variant": "security", "route": "bottom-channel" },
+    { "from": "error", "to": "diagnostics", "label": "preserve logs", "classification": "evidence", "variant": "security", "route": "top-channel", "labelDy": 65 }
+  ]
+}
