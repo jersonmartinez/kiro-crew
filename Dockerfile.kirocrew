@@ -27,7 +27,7 @@ RUN apt-get update \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
         google-cloud-cli \
-        google-cloud-sdk-gke-gcloud-auth-plugin \
+        google-cloud-cli-gke-gcloud-auth-plugin \
         kubectl \
     && gcloud --version \
     && kubectl version --client \

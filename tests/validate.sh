@@ -19,7 +19,7 @@ test -f LICENSE
 
 grep -F -- '*-home-backup-*.tgz' .gitignore >/dev/null
 grep -F -- 'google-cloud-cli' Dockerfile.kirocrew >/dev/null
-grep -F -- 'google-cloud-sdk-gke-gcloud-auth-plugin' Dockerfile.kirocrew >/dev/null
+grep -F -- 'google-cloud-cli-gke-gcloud-auth-plugin' Dockerfile.kirocrew >/dev/null
 grep -F -- 'kubectl' Dockerfile.kirocrew >/dev/null
 grep -F -- 'kiro_crew/sandbox.py' Dockerfile.kirocrew >/dev/null
 grep -F -- 'Expected {expected} gcloud sandbox entries' Dockerfile.kirocrew >/dev/null
