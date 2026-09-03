@@ -354,7 +354,7 @@ I/O con muchos archivos pequeños.
 Recorrer directorios sobre el bind-mount de Windows cuesta ~1 ms por entrada. Un
 repositorio con un `node_modules` grande convierte cualquier recorrido del árbol
 en una operación de minutos que deja al gateway sin event loop, y el síntoma es
-`Request initialize timed out`. En `premium-prb/engineering-governance` el
+`Request initialize timed out`. En `example-org/sample-repo` el
 recorrido completo eran 58 213 archivos en 64.1 s, de los cuales `node_modules`
 aportaba 53 039 archivos y 57.1 s.
 
@@ -365,7 +365,7 @@ activas ese mismo recorrido baja a 2 471 archivos en 6.3 s. Ver ADR-009.
 
 ```bash
 make masks                                              # regenerar el override
-make mask-report PROJECT=premium-prb/engineering-governance   # medir el árbol
+make mask-report PROJECT=example-org/sample-repo   # medir el árbol
 ```
 
 `up`, `restart` y `update` encadenan `masks`, de modo que el override nunca queda
@@ -389,10 +389,10 @@ Cada instancia autentica con su propia cuenta de GitHub (ADR-010). Configura
 los PATS en `.env`:
 
 ```dotenv
-GH_USER_A=Jerson-Martinez-JEM0925
-GH_TOKEN_A=ghp_...
-GH_USER_B=jersonmartinez
-GH_TOKEN_B=ghp_...
+GH_USER_A=your-gh-user-a
+GH_TOKEN_A=your-token-a
+GH_USER_B=your-gh-user-b
+GH_TOKEN_B=your-token-b
 
 # Opcional:
 #GH_EMAIL_A=...   # por defecto: <GH_USER_A>@users.noreply.github.com
@@ -546,7 +546,7 @@ docker compose exec kiro-b libreoffice --headless --version
 
 ## Licencia
 
-Este proyecto se distribuye bajo la licencia MIT. Consulta [`LICENSE`](LICENSE).
+Este proyecto se distribuye bajo la licencia MIT. Consulta [`LICENSE`](../../LICENSE).
 
 ## Contribuir
 

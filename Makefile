@@ -22,7 +22,7 @@ masks:
 	sh scripts/generate-mask-override.sh
 
 # Report the traversal cost of a project tree as the container sees it.
-# Usage: make mask-report PROJECT=premium-prb/engineering-governance
+# Usage: make mask-report PROJECT=example-org/sample-repo
 mask-report:
 ifndef PROJECT
 	$(error PROJECT is required. Usage: make mask-report PROJECT=<relative-path>)

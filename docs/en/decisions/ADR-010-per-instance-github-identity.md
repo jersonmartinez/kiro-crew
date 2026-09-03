@@ -5,7 +5,7 @@ Accepted (2026-08-18).
 
 ## Context
 
-Kiro Crew runs `kiro-a` and `kiro-b`. A shared `GH_TOKEN` forced one GitHub account for both. The required identities are `Jerson-Martinez-JEM0925` for `kiro-a` and `jersonmartinez` for `kiro-b`. The agent must run `gh` and Git operations without repeating manual setup after restarts.
+Kiro Crew runs `kiro-a` and `kiro-b`. A shared `GH_TOKEN` forced one GitHub account for both. Each instance receives its own operator-supplied GitHub identity through `.env`; the documentation uses no real account names. The agent must run `gh` and Git operations without repeating manual setup after restarts.
 
 `GH_TOKEN` is not in `_AGENT_DENIED_ENV_KEYS` or `_SENSITIVE_ENV_PREFIXES` in `kiro_crew/sandbox.py`, so child processes inherit it. `GIT_ASKPASS` is present and is removed, making it unsuitable. `gh auth git-credential` uses `GH_TOKEN` but needs a helper in `~/.gitconfig`.
 

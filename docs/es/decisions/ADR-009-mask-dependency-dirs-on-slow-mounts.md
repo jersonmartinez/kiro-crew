@@ -10,13 +10,13 @@ mitigaban con timeouts.
 Tras hacer efectivo el presupuesto del handshake ACP (ADR-008), el error
 persistía como `Request initialize timed out after 240s`, pero **solo con
 determinados proyectos**: un repositorio pequeño respondía en segundos mientras
-`premium-prb/engineering-governance` agotaba el presupuesto completo de forma
+`example-org/sample-repo` agotaba el presupuesto completo de forma
 reproducible.
 
 Mediciones dentro del contenedor, con `PROJECTS_BASE` montado desde
 `C:/Users/.../Repositories` (Docker Desktop, virtiofs):
 
-| Recorrido del árbol de `engineering-governance` | Archivos | Tiempo |
+| Recorrido del árbol de `sample-repo` | Archivos | Tiempo |
 | --- | --- | --- |
 | Completo | 58 213 | 64.1 s |
 | Sin `node_modules` / `.git` / `build` | 196 | 0.5 s |
@@ -110,7 +110,7 @@ montaje para ser efectiva.
 
 ## Consequences
 
-- El recorrido de `engineering-governance` baja de **64.1 s / 58 213 archivos**
+- El recorrido de `sample-repo` baja de **64.1 s / 58 213 archivos**
   a **6.3 s / 2 471 archivos** (10x). El código fuente, `docs/` y `git`
   permanecen accesibles y verificados.
 - Los directorios enmascarados se ven **vacíos** dentro del contenedor. Un

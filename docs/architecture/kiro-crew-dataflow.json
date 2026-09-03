@@ -27,7 +27,7 @@
     { "id": "tools", "type": "backend", "label": "Tool volumes", "sublabel": "docker + node + gh", "stage": 2, "row": 0 },
     { "id": "config", "type": "backend", "label": "Agent config", "sublabel": "setup + settings", "stage": 2, "row": 1 },
     { "id": "home", "type": "database", "label": "Agent home", "sublabel": "named volume", "stage": 3, "row": 0, "tag": "persistent" },
-    { "id": "workspace", "type": "external", "label": "Workspace", "sublabel": "projects / Factib", "stage": 3, "row": 3 },
+    { "id": "workspace", "type": "external", "label": "Workspace", "sublabel": "sample-project", "stage": 3, "row": 3 },
     { "id": "agent", "type": "backend", "label": "Kiro session", "sublabel": "prompt + ACP", "stage": 3, "row": 1 },
     { "id": "result", "type": "frontend", "label": "Result", "sublabel": "response + files", "stage": 4, "row": 1 },
     { "id": "error", "type": "security", "label": "I/O error", "sublabel": "errno 5", "stage": 4, "row": 3 },

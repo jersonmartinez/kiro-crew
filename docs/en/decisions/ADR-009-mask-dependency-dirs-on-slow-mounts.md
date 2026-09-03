@@ -5,7 +5,7 @@ Accepted (2026-08-18). Closes the root cause that ADR-006 and ADR-008 only mitig
 
 ## Context
 
-After ADR-008 made the ACP budget effective, `Request initialize timed out after 240s` persisted only for certain projects. With `PROJECTS_BASE` mounted from `C:/Users/.../Repositories` through Docker Desktop/virtiofs, `engineering-governance` traversal took 64.1 s for 58 213 files; without `node_modules` / `.git` / `build`, it took 0.5 s for 196 files. `node_modules` contributed 53 039 files and 57.1 s (89% of cost). Windows mounts cost approximately 1 ms per directory entry.
+After ADR-008 made the ACP budget effective, `Request initialize timed out after 240s` persisted only for certain projects. With `PROJECTS_BASE` mounted from `C:/Users/.../Repositories` through Docker Desktop/virtiofs, `sample-repo` traversal took 64.1 s for 58 213 files; without `node_modules` / `.git` / `build`, it took 0.5 s for 196 files. `node_modules` contributed 53 039 files and 57.1 s (89% of cost). Windows mounts cost approximately 1 ms per directory entry.
 
 Direct `kiro-cli acp --agent kirocrew` initialize with that repository as `cwd` responded in ~1.9 s (8/8 attempts), proving the handshake itself does not traverse the tree. The single asyncio gateway can block its ACP reader loop during traversal, so an already-emitted response is not read within the budget. The component initiating traversal was not identified with certainty; removing I/O cost works independently of the caller. Path length and repository count are not causes.
 
@@ -21,7 +21,7 @@ Continuing to raise `KIROCREW_ACP_INIT_TIMEOUT_SECS` was rejected: a 64 s traver
 
 ## Consequences
 
-- `engineering-governance` falls from **64.1 s / 58 213 files** to **6.3 s / 2 471 files** (10x); source, `docs/`, and `git` remain accessible.
+- `sample-repo` falls from **64.1 s / 58 213 files** to **6.3 s / 2 471 files** (10x); source, `docs/`, and `git` remain accessible.
 - Masked directories appear **empty**. Agent `npm install` writes to `tmpfs`, limited by `KIROCREW_MASK_TMPFS_SIZE` (1 GB by default); it is not shared with Windows and does not survive restart. Remove a name from `KIROCREW_MASK_DIRS` and regenerate when real dependencies are needed.
 - The generated `docker-compose.override.yml` is host-specific, ignored by Git, and must not be edited manually.
 - Run `make masks` after cloning or installing dependencies; diagnosis is reproducible with `make mask-report PROJECT=<path>`.

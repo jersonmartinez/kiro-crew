@@ -164,11 +164,11 @@ A healthy dashboard does not prove chat sessions can initialize if Kiro CLI is u
 
 ## Dependency-tree masking
 
-On Windows bind mounts, directory traversal costs about ~1 ms per entry. A large `node_modules` can produce `Request initialize timed out`; `make masks` scans `PROJECTS_BASE` and generates `docker-compose.override.yml` with an empty `tmpfs` over dependency/cache directories. The reference `premium-prb/engineering-governance` traversal drops from 58 213 files / 64.1 s to 2 471 files / 6.3 s (see ADR-009).
+On Windows bind mounts, directory traversal costs about ~1 ms per entry. A large `node_modules` can produce `Request initialize timed out`; `make masks` scans `PROJECTS_BASE` and generates `docker-compose.override.yml` with an empty `tmpfs` over dependency/cache directories. The reference `example-org/sample-repo` traversal drops from 58 213 files / 64.1 s to 2 471 files / 6.3 s (see ADR-009).
 
 ```bash
 make masks
-make mask-report PROJECT=premium-prb/engineering-governance
+make mask-report PROJECT=example-org/sample-repo
 ```
 
 `up`, `restart`, and `update` chain `masks`. After cloning or installing dependencies, run `make masks`. `KIROCREW_MASK_DIRS` controls the list; `.git`, `build`, and `dist` intentionally remain visible. Masked directories appear empty, and installs go to `KIROCREW_MASK_TMPFS_SIZE` (1 GB by default), disappearing on restart. The generated `docker-compose.override.yml` is host-specific, ignored by Git, and must not be edited manually.
