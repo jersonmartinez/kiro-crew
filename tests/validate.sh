@@ -16,11 +16,14 @@ test -f scripts/add-project.sh
 test -f scripts/generate-mask-override.sh
 test -f tests/validate.sh
 test -f LICENSE
+test -f docs/en/decisions/ADR-013-openssh-client-for-gcp-iap.md
+test -f docs/es/decisions/ADR-013-openssh-client-for-gcp-iap.md
 
 grep -F -- '*-home-backup-*.tgz' .gitignore >/dev/null
 grep -F -- 'google-cloud-cli' Dockerfile.kirocrew >/dev/null
 grep -F -- 'google-cloud-cli-gke-gcloud-auth-plugin' Dockerfile.kirocrew >/dev/null
 grep -F -- 'kubectl' Dockerfile.kirocrew >/dev/null
+grep -F -- 'openssh-client' Dockerfile.kirocrew >/dev/null
 grep -F -- 'kiro_crew/sandbox.py' Dockerfile.kirocrew >/dev/null
 grep -F -- 'Expected {expected} gcloud sandbox entries' Dockerfile.kirocrew >/dev/null
 grep -F -- 'compose/shared.yml' docker-compose.yml >/dev/null

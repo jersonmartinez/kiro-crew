@@ -383,6 +383,30 @@ Windows ni sobrevive al reinicio.
 `docker-compose.override.yml` es un archivo generado y específico del host; está
 en `.gitignore` y no debe editarse a mano.
 
+## SSH e IAP de GCP
+
+La imagen de runtime incluye el cliente OpenSSH (`openssh-client`) en ambos contenedores de Kiro. Esto habilita `gcloud compute ssh`, incluidas las conexiones tunelizadas por IAP, desde shells ACP sin ejecutar un servidor SSH dentro de KiroCrew.
+
+Verifica el cliente y la superficie del comando SSH de Google Cloud con:
+
+```bash
+make ssh-test
+# O apunta a una instancia:
+make ssh-test INSTANCE=kiro-b
+```
+
+Ejemplo:
+
+```bash
+gcloud compute ssh VM_NAME \
+  --zone ZONE \
+  --project PROJECT_ID \
+  --tunnel-through-iap \
+  --command 'COMMAND'
+```
+
+La VM remota debe permitir la conexión a la identidad GCP autenticada y deben estar configurados los requisitos de IAP/SSH en Google Cloud. No coloques contraseñas, claves privadas ni salidas de comandos que contengan secretos en Git o en la documentación.
+
 ## Identidad de GitHub por instancia
 
 Cada instancia autentica con su propia cuenta de GitHub (ADR-010). Configura
