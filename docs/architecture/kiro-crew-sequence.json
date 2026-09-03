@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Prompt Request Across Devin, Docker Desktop, WSL, and Kiro Crew",
+    "output": "kiro-crew-sequence.html",
+    "viewBox": [1080, 980],
+    "column_fit": "spread",
+    "animation": "trace",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "request", "label": "Prompt request", "focus": ["devin", "desktop", "wsl", "crew", "kiro-b"], "note": "Follow the request from Devin through Docker Desktop and WSL to kiro-b." },
+      { "id": "project-access", "label": "Project access", "focus": ["kiro-b", "mount", "project"], "note": "See how the agent accesses the host project through the mounted path." },
+      { "id": "failure", "label": "Failure boundary", "focus": ["desktop", "wsl", "crew", "error", "devin"], "note": "The error path identifies the WSL or bind-mount boundary without implying container loss." }
+    ]
+  },
+  "participants": [
+    { "id": "devin", "type": "external", "label": "Devin", "sublabel": "prompt" },
+    { "id": "desktop", "type": "cloud", "label": "Docker", "sublabel": "Windows host backend" },
+    { "id": "wsl", "type": "cloud", "label": "WSL 2", "sublabel": "Ubuntu" },
+    { "id": "crew", "type": "backend", "label": "Dashboard", "sublabel": ":5477 / kiro-b" },
+    { "id": "kiro-b", "type": "backend", "label": "kiro-b", "sublabel": "internal :5476" },
+    { "id": "mount", "type": "cloud", "label": "Mount proxy", "sublabel": "Docker Desktop / WSL" },
+    { "id": "project", "type": "external", "label": "Host tree", "sublabel": "Factib" },
+    { "id": "error", "type": "security", "label": "I/O boundary", "sublabel": "errno 5" }
+  ],
+  "segments": [
+    { "from": 150, "to": 330, "label": "Submit and route" },
+    { "from": 348, "to": 610, "label": "Runtime and project access" },
+    { "from": 628, "to": 900, "label": "Response or recovery" }
+  ],
+  "messages": [
+    { "from": "devin", "to": "desktop", "y": 180, "label": "open localhost:5477", "variant": "emphasis" },
+    { "from": "desktop", "to": "wsl", "y": 222, "label": "WSL distro proxy / IPC", "variant": "default" },
+    { "from": "wsl", "to": "crew", "y": 264, "label": "route dashboard request", "variant": "default" },
+    { "from": "crew", "to": "kiro-b", "y": 306, "label": "start or reuse session", "variant": "emphasis" },
+    { "from": "kiro-b", "to": "mount", "y": 386, "label": "resolve /home/kirocrew/projects", "variant": "default" },
+    { "from": "mount", "to": "project", "y": 428, "label": "read / write Factib", "variant": "emphasis" },
+    { "from": "project", "to": "mount", "y": 470, "label": "files and metadata", "variant": "return" },
+    { "from": "mount", "to": "kiro-b", "y": 512, "label": "project view", "variant": "return" },
+    { "from": "kiro-b", "to": "crew", "y": 554, "label": "ACP result", "variant": "return" },
+    { "from": "crew", "to": "devin", "y": 596, "label": "prompt response", "variant": "emphasis" },
+    { "from": "mount", "to": "error", "y": 680, "label": "errno 5 / I/O error", "variant": "security" },
+    { "from": "wsl", "to": "error", "y": 722, "label": "backend.sock unavailable", "variant": "security" },
+    { "from": "error", "to": "devin", "y": 764, "label": "surface exact path + logs", "variant": "return" },
+    { "from": "devin", "to": "desktop", "y": 846, "label": "targeted recovery request", "variant": "dashed" },
+    { "from": "desktop", "to": "wsl", "y": 888, "label": "recreate integration proxy", "variant": "dashed" }
+  ],
+  "activations": [
+    { "participant": "desktop", "from": 214, "to": 912, "type": "cloud" },
+    { "participant": "wsl", "from": 256, "to": 904, "type": "cloud" },
+    { "participant": "crew", "from": 296, "to": 600, "type": "backend" },
+    { "participant": "kiro-b", "from": 300, "to": 570, "type": "backend" },
+    { "participant": "mount", "from": 380, "to": 520, "type": "cloud" },
+    { "participant": "error", "from": 674, "to": 778, "type": "security" }
+  ]
+}

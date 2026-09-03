@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Kiro Crew Runtime Architecture",
+    "output": "kiro-crew-architecture.html",
+    "quality_profile": "showcase",
+    "repository": { "url": "https://github.com/jersonmartinez/kiro-crew.git", "revision": "e719a14c64ea5c6f3912aaf91dda1a80d5bb15c5" },
+    "views": [
+      { "id": "runtime", "label": "Runtime services", "focus": ["docker-desktop", "kiro-net", "kiro-a", "kiro-b"], "note": "Follow the two agent containers on the Docker Desktop network." },
+      { "id": "dependencies", "label": "Startup dependencies", "focus": ["docker-cli", "node-cli", "gh-cli", "kiro-a-config", "kiro-b-config", "kiro-a", "kiro-b"], "note": "See one-shot tool preparation and per-instance configuration dependencies." },
+      { "id": "storage", "label": "Persistent and shared storage", "focus": ["kiro-a-home", "kiro-b-home", "projects", "kiro-a", "kiro-b"], "note": "Separate agent homes use named volumes while both agents access the host project tree." }
+    ]
+  },
+  "components": [
+    { "id": "docker-desktop", "type": "cloud", "label": "Docker Desktop", "sublabel": "Linux engine + WSL 2", "tag": "host runtime", "sources": [{ "path": "docker-compose.yml", "line": 1 }], "pos": [40, 300], "size": [160, 72] },
+    { "id": "kiro-net", "type": "cloud", "label": "kirocrew-net", "sublabel": "bridge network", "tag": "shared network", "sources": [{ "path": "compose/shared.yml", "line": 81, "end_line": 84 }], "pos": [270, 300], "size": [160, 72] },
+    { "id": "docker-cli", "type": "backend", "label": "docker-cli", "sublabel": "tool image", "tag": "one-shot", "sources": [{ "path": "compose/shared.yml", "line": 2, "end_line": 14 }], "pos": [270, 70], "size": [140, 68] },
+    { "id": "node-cli", "type": "backend", "label": "node-cli", "sublabel": "Node + Playwright", "tag": "one-shot", "sources": [{ "path": "compose/shared.yml", "line": 16, "end_line": 43 }], "pos": [450, 70], "size": [150, 68] },
+    { "id": "gh-cli", "type": "backend", "label": "gh-cli", "sublabel": "GitHub CLI", "tag": "one-shot", "sources": [{ "path": "compose/shared.yml", "line": 45, "end_line": 55 }], "pos": [640, 70], "size": [140, 68] },
+    { "id": "kiro-a-config", "type": "backend", "label": "kiro-a-config", "sublabel": "agent-only setup", "tag": "pre-start", "sources": [{ "path": "compose/kiro-a.yml", "line": 2, "end_line": 31 }], "pos": [430, 210], "size": [170, 72] },
+    { "id": "kiro-b-config", "type": "backend", "label": "kiro-b-config", "sublabel": "agent-only setup", "tag": "pre-start", "sources": [{ "path": "compose/kiro-b.yml", "line": 2, "end_line": 31 }], "pos": [680, 210], "size": [170, 72] },
+    { "id": "kiro-a", "type": "backend", "label": "kiro-a", "sublabel": "dashboard :5476", "tag": "healthy", "sources": [{ "path": "compose/kiro-a.yml", "line": 49, "end_line": 116 }], "pos": [430, 390], "size": [170, 76] },
+    { "id": "kiro-b", "type": "backend", "label": "kiro-b", "sublabel": ":5477 → :5476", "tag": "healthy", "sources": [{ "path": "compose/kiro-b.yml", "line": 49, "end_line": 113 }], "pos": [680, 390], "size": [170, 76] },
+    { "id": "kiro-a-home", "type": "database", "label": "kiro-a-home", "sublabel": "named volume", "tag": "/home/kirocrew", "sources": [{ "path": "compose/kiro-a.yml", "line": 88, "end_line": 90 }], "pos": [430, 570], "size": [170, 72] },
+    { "id": "kiro-b-home", "type": "database", "label": "kiro-b-home", "sublabel": "named volume", "tag": "/home/kirocrew", "sources": [{ "path": "compose/kiro-b.yml", "line": 85, "end_line": 87 }], "pos": [680, 570], "size": [170, 72] },
+    { "id": "projects", "type": "external", "label": "Host projects", "sublabel": "PROJECTS_BASE bind", "tag": "shared tree", "sources": [{ "path": "compose/kiro-b.yml", "line": 91, "end_line": 94 }], "pos": [930, 390], "size": [180, 76] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Docker Desktop Linux engine", "wraps": ["kiro-net", "docker-cli", "node-cli", "gh-cli", "kiro-a-config", "kiro-b-config", "kiro-a", "kiro-b", "kiro-a-home", "kiro-b-home"] }
+  ],
+  "connections": [
+    { "id": "desktop-network", "from": "docker-desktop", "to": "kiro-net", "variant": "emphasis" },
+    { "id": "config-a", "from": "kiro-a-config", "to": "kiro-a", "variant": "emphasis" },
+    { "id": "config-b", "from": "kiro-b-config", "to": "kiro-b", "variant": "emphasis" },
+    { "id": "home-a", "from": "kiro-a", "to": "kiro-a-home", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
+    { "id": "home-b", "from": "kiro-b", "to": "kiro-b-home", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
+    { "id": "projects-b", "from": "kiro-b", "to": "projects", "variant": "dashed", "fromSide": "right", "toSide": "left" }
+  ]
+}

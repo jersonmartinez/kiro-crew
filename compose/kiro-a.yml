@@ -1,0 +1,120 @@
+services:
+  kiro-a-config:
+    image: ${KIROCREW_RUNTIME_IMAGE:-kirocrew-local:latest}
+    depends_on:
+      node-cli:
+        condition: service_completed_successfully
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        if [ ! -x "$${HOME}/.local/bin/kiro-cli" ]; then
+          curl -fsSL https://cli.kiro.dev/install | bash
+        fi
+        kirocrew setup --agent-only
+        playwright-cli install --skills=agents --global
+        kirocrew config set knowledge.max_sources "$${KIROCREW_KNOWLEDGE_MAX_SOURCES}"
+        kirocrew config set knowledge.extraction_pool_size "$${KIROCREW_KNOWLEDGE_EXTRACTION_POOL_SIZE}"
+        kirocrew config set knowledge.folder_ingest_chunk_budget "$${KIROCREW_KNOWLEDGE_FOLDER_CHUNK_BUDGET}"
+        # Git identity + GitHub credential helper for this instance (ADR-010).
+        # Written into the persistent home volume, so it survives restarts and
+        # never has to be re-run manually. `gh` itself needs no `auth login`:
+        # it authenticates from GH_TOKEN on every invocation.
+        # Remove any stale manually-created gh host config so it cannot shadow
+        # the per-instance token injected via the environment.
+        rm -f /home/kirocrew/.config/gh/hosts.yml
+        git config --global --replace-all user.name "$${GIT_USER_NAME}"
+        git config --global --replace-all user.email "$${GIT_USER_EMAIL}"
+        git config --global --replace-all credential."https://github.com".helper "!/opt/gh-cli/gh auth git-credential"
+        git config --global --replace-all safe.directory '*'
+        if kiro-cli whoami >/dev/null 2>&1; then
+          touch "$${KIROCREW_HOME}/.kiro_cli_setup_complete"
+        fi
+    environment:
+      HOME: /home/kirocrew
+      KIRO_HOME: /home/kirocrew/.kiro
+      KIROCREW_HOME: /home/kirocrew/.kiro/crew
+      PATH: /opt/node-cli/bin:/home/kirocrew/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      NODE_PATH: /opt/node-cli/lib/node_modules
+      PLAYWRIGHT_BROWSERS_PATH: /opt/playwright-browsers
+      KIROCREW_KNOWLEDGE_MAX_SOURCES: ${KIROCREW_KNOWLEDGE_MAX_SOURCES:-100}
+      KIROCREW_KNOWLEDGE_EXTRACTION_POOL_SIZE: ${KIROCREW_KNOWLEDGE_EXTRACTION_POOL_SIZE:-1}
+      KIROCREW_KNOWLEDGE_FOLDER_CHUNK_BUDGET: ${KIROCREW_KNOWLEDGE_FOLDER_CHUNK_BUDGET:-25}
+      GIT_USER_NAME: ${GH_USER_A:-kiro-a}
+      GIT_USER_EMAIL: ${GH_EMAIL_A:-${GH_USER_A:-kiro-a}@users.noreply.github.com}
+    volumes:
+      - kiro-a-home:/home/kirocrew
+      - node-bin:/opt/node-cli:ro
+      - playwright-browsers:/opt/playwright-browsers:ro
+
+  kiro-a:
+    image: ${KIROCREW_RUNTIME_IMAGE:-kirocrew-local:latest}
+    build:
+      context: .
+      dockerfile: Dockerfile.kirocrew
+      args:
+        BASE_IMAGE: ${KIROCREW_IMAGE}
+    hostname: kiro-a
+    container_name: kiro-a
+    restart: unless-stopped
+    stop_grace_period: 30s
+    depends_on:
+      docker-cli:
+        condition: service_completed_successfully
+      node-cli:
+        condition: service_completed_successfully
+      gh-cli:
+        condition: service_completed_successfully
+      kiro-a-config:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:${KIRO_A_PORT:-5476}:5476"
+    environment:
+      KIROCREW_BIND: 0.0.0.0
+      KIRO_HOME: /home/kirocrew/.kiro
+      KIROCREW_HOME: /home/kirocrew/.kiro/crew
+      PLAYWRIGHT_BROWSERS_PATH: /opt/playwright-browsers
+      CLOUDSDK_CONFIG: /home/kirocrew/.config/gcloud
+      TZ: ${TZ}
+      PATH: /opt/docker-cli:/opt/node-cli/bin:/opt/gh-cli:/home/kirocrew/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      NODE_PATH: /opt/node-cli/lib/node_modules
+      # Per-instance GitHub identity (ADR-010). gh reads GH_TOKEN on every
+      # invocation, so there is no `gh auth login` state to lose on restart.
+      # GH_TOKEN is not in kiro-crew's agent-denied env list, so the agent's own
+      # subprocesses inherit it and can drive gh/git without extra setup.
+      GH_TOKEN: ${GH_TOKEN_A:-}
+      GH_HOST: github.com
+      KIROCREW_ALLOW_UNSANDBOXED: ${KIROCREW_ALLOW_UNSANDBOXED:-1}
+      KIROCREW_ACP_INIT_TIMEOUT_SECS: ${KIROCREW_ACP_INIT_TIMEOUT_SECS:-120}
+    volumes:
+      - kiro-a-home:/home/kirocrew
+      - docker-bin:/opt/docker-cli:ro
+      - docker-bin:/usr/local/libexec/docker:ro
+      - docker-profile:/etc/profile.d:ro
+      - node-bin:/opt/node-cli:ro
+      - playwright-browsers:/opt/playwright-browsers:ro
+      - gh-bin:/opt/gh-cli:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${PROJECTS_BASE}:/home/kirocrew/projects
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
+    group_add:
+      - "${DOCKER_SOCKET_GID:-0}"
+    labels:
+      com.kirocrew.role: ai-agent
+      com.kirocrew.instance: kiro-a
+      com.kirocrew.version: stable
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5476/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - kirocrew-net
+
+volumes:
+  kiro-a-home:
+    name: kiro-a-home

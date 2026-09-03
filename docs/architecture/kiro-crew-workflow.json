@@ -1,0 +1,63 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Kiro Crew Startup, Prompt, and Recovery Workflow",
+    "output": "kiro-crew-workflow.html",
+    "animation": "trace",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "startup", "label": "Startup path", "focus": ["compose", "tools", "config", "agent", "health"], "note": "Follow dependency preparation through a healthy agent dashboard." },
+      { "id": "prompt", "label": "Prompt execution", "focus": ["prompt", "agent", "acp", "result"], "note": "Follow a prompt into the selected project and ACP runtime." },
+      { "id": "recovery", "label": "Error recovery", "focus": ["error", "logs", "restart"], "note": "Preserve evidence and choose the smallest recovery scope." }
+    ]
+  },
+  "lanes": [
+    { "id": "operator", "label": "Operator / Dashboard" },
+    { "id": "compose", "label": "Compose orchestration" },
+    { "id": "runtime", "label": "Kiro Crew runtime" },
+    { "id": "recovery", "label": "Diagnostics & recovery", "variant": "exception" }
+  ],
+  "phases": [
+    { "id": "prepare", "label": "Prepare", "fromCol": 0, "toCol": 1 },
+    { "id": "start", "label": "Start services", "fromCol": 2, "toCol": 3, "variant": "emphasis" },
+    { "id": "execute", "label": "Execute prompt", "fromCol": 4, "toCol": 5, "variant": "dashed" }
+  ],
+  "groups": [
+    { "id": "dependencies", "label": "One-shot dependencies", "lane": "compose", "fromCol": 0, "toCol": 2, "variant": "dashed" },
+    { "id": "prompt-loop", "label": "Prompt runtime", "lane": "runtime", "fromCol": 2, "toCol": 5, "variant": "emphasis" },
+    { "id": "recovery-loop", "label": "Preserve evidence, then recover", "lane": "recovery", "fromCol": 2, "toCol": 5, "variant": "security" }
+  ],
+  "mainPath": ["compose", "tools", "config", "agent", "prompt", "acp", "result"],
+  "semanticChecks": { "allowedRoots": ["compose", "health", "error"], "allowedTerminals": ["health", "result", "restart", "project"] },
+  "nodes": [
+    { "id": "compose", "lane": "compose", "col": 0, "type": "backend", "label": "docker compose", "width": 140 },
+    { "id": "tools", "lane": "compose", "col": 1, "type": "backend", "label": "Tool preparation", "tag": "completed", "width": 150 },
+    { "id": "config", "lane": "compose", "col": 2, "type": "backend", "label": "Agent config", "tag": "pre-start", "width": 150 },
+    { "id": "health", "lane": "runtime", "col": 2, "type": "backend", "label": "Healthcheck", "tag": "ready", "width": 140 },
+    { "id": "agent", "lane": "runtime", "col": 3, "type": "backend", "label": "Kiro Crew agent", "width": 150 },
+    { "id": "project", "lane": "operator", "col": 2, "type": "external", "label": "Select project", "width": 150 },
+    { "id": "prompt", "lane": "operator", "col": 4, "type": "frontend", "label": "Submit prompt", "width": 150 },
+    { "id": "acp", "lane": "runtime", "col": 5, "type": "backend", "label": "ACP runtime", "tag": "agent subprocess", "width": 140 },
+    { "id": "result", "lane": "operator", "col": 5, "type": "frontend", "label": "Prompt result", "width": 140 },
+    { "id": "error", "lane": "recovery", "col": 3, "type": "security", "label": "Runtime or mount error", "tag": "preserve evidence", "width": 160 },
+    { "id": "logs", "lane": "recovery", "col": 4, "type": "database", "label": "Inspect logs", "width": 154 },
+    { "id": "restart", "lane": "recovery", "col": 5, "type": "messagebus", "label": "Targeted restart", "width": 150 }
+  ],
+  "edges": [
+    { "id": "compose-tools", "from": "compose", "to": "tools", "label": "create dependencies", "role": "main", "variant": "emphasis" },
+    { "id": "tools-config", "from": "tools", "to": "config", "label": "binaries ready", "role": "main" },
+    { "id": "config-agent", "from": "config", "to": "agent", "label": "config complete", "role": "main", "variant": "emphasis" },
+    { "id": "agent-prompt", "from": "agent", "to": "prompt", "label": "ready", "role": "main" },
+    { "id": "prompt-acp", "from": "prompt", "to": "acp", "label": "start session", "role": "main", "variant": "emphasis" },
+    { "id": "acp-result", "from": "acp", "to": "result", "label": "response", "role": "return", "variant": "emphasis" },
+    { "id": "error-logs", "from": "error", "to": "logs", "label": "preserve evidence", "role": "branch", "variant": "security" },
+    { "id": "logs-restart", "from": "logs", "to": "restart", "label": "smallest scope", "role": "branch", "variant": "dashed" },
+    { "id": "prompt-project", "from": "prompt", "to": "project", "label": "working directory", "role": "branch", "variant": "emphasis" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Startup contract", "items": ["Shared tools prepare before agent config", "Per-instance config completes before the agent starts", "Healthcheck is the readiness boundary"] },
+    { "dot": "emerald", "title": "Prompt path", "items": ["The dashboard submits work for a selected project", "ACP runs the agent subprocess with mounted tools", "The result returns through the dashboard session"] },
+    { "dot": "rose", "title": "Recovery discipline", "items": ["Preserve the exact errno and path first", "Inspect logs before restarting anything", "Restart the smallest affected scope and verify health"] }
+  ]
+}

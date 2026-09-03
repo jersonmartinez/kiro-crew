@@ -1,0 +1,91 @@
+services:
+  docker-cli:
+    image: docker:cli
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        mkdir -p /docker-bin/cli-plugins /docker-profile
+        cp /usr/local/bin/docker /docker-bin/docker
+        cp /usr/local/libexec/docker/cli-plugins/docker-compose /docker-bin/cli-plugins/docker-compose
+        printf '%s\n' 'export PATH="/opt/docker-cli:/opt/node-cli/bin:/opt/gh-cli:/home/kirocrew/.local/bin:$${PATH}"' > /docker-profile/docker-cli.sh
+    volumes:
+      - docker-bin:/docker-bin
+      - docker-profile:/docker-profile
+
+  node-cli:
+    image: node:22-slim
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        npm install --global --no-audit --no-fund @playwright/cli@0.1.18
+        mkdir -p /node-bin/bin /node-bin/lib /playwright-browsers
+        cp /usr/local/bin/node /node-bin/bin/node
+        cp -a /usr/local/lib/node_modules /node-bin/lib/
+        ln -sf ../lib/node_modules/npm/bin/npm-cli.js /node-bin/bin/npm
+        ln -sf ../lib/node_modules/npm/bin/npx-cli.js /node-bin/bin/npx
+        ln -sf ../lib/node_modules/corepack/dist/corepack.js /node-bin/bin/corepack
+        rm -f /node-bin/bin/playwright-cli
+        printf '%s\n' \
+          '#!/bin/sh' \
+          'if [ "$$1" = open ]; then' \
+          '  browser_set=false' \
+          '  for arg in "$$@"; do case "$$arg" in --browser=*|--browser) browser_set=true;; esac; done' \
+          '  if [ "$$browser_set" = false ]; then set -- "$$@" --browser=chromium; fi' \
+          'fi' \
+          'exec /opt/node-cli/bin/node /opt/node-cli/lib/node_modules/@playwright/cli/playwright-cli.js "$$@"' \
+          > /node-bin/bin/playwright-cli
+        chmod +x /node-bin/bin/playwright-cli
+        PLAYWRIGHT_BROWSERS_PATH=/playwright-browsers playwright-cli install-browser chromium
+    volumes:
+      - node-bin:/node-bin
+      - playwright-browsers:/playwright-browsers
+
+  gh-cli:
+    image: debian:trixie-slim
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        apt-get update -qq
+        DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends gh >/dev/null
+        install -D -m 0755 /usr/bin/gh /gh-bin/gh
+    volumes:
+      - gh-bin:/gh-bin
+
+  make:
+    profiles:
+      - tools
+    build:
+      context: .
+      dockerfile: Dockerfile.make
+    working_dir: /workspace
+    environment:
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-kiro-crew}
+      PROJECTS_BASE: ${PROJECTS_BASE}
+      PROJECT_PROFILE: ${PROJECT_PROFILE:-dev}
+      KIROCREW_MASK_DIRS: ${KIROCREW_MASK_DIRS:-}
+      KIROCREW_MASK_MAX_DEPTH: ${KIROCREW_MASK_MAX_DEPTH:-4}
+      KIROCREW_MASK_TMPFS_SIZE: ${KIROCREW_MASK_TMPFS_SIZE:-1g}
+    volumes:
+      - .:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+      - type: bind
+        source: ${PROJECTS_BASE}
+        target: /workspace/projects
+        read_only: true
+    networks:
+      - kirocrew-net
+
+networks:
+  kirocrew-net:
+    name: kirocrew-net
+    driver: bridge
+
+volumes:
+  docker-bin:
+  docker-profile:
+  node-bin:
+  playwright-browsers:
+  gh-bin:

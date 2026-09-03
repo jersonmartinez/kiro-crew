@@ -1,0 +1,7 @@
+include:
+  - path: compose/shared.yml
+    project_directory: .
+  - path: compose/kiro-a.yml
+    project_directory: .
+  - path: compose/kiro-b.yml
+    project_directory: .
