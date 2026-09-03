@@ -529,11 +529,19 @@ docker compose exec kiro-b libreoffice --headless --version
 ├── .github/workflows/validate.yml
 └── docs/
     ├── security.md
+    ├── architecture/
+    │   ├── kiro-crew-architecture.html
+    │   ├── kiro-crew-architecture.json
+    │   ├── kiro-crew-workflow.html
+    │   ├── kiro-crew-workflow.json
+    │   ├── kiro-crew-sequence.html
+    │   ├── kiro-crew-sequence.json
+    │   ├── kiro-crew-dataflow.html
+    │   └── kiro-crew-dataflow.json
     └── decisions/
         ├── ADR-001-docker-cli-sidecar.md
-        ├── ADR-002-node-cli-sidecar.md
-        ├── ADR-003-shared-network.md
-        └── ADR-010-per-instance-github-identity.md
+        ├── ADR-011-modular-compose-configuration.md
+        └── ADR-012-gcloud-access-from-acp.md
 ```
 
 ## Licencia

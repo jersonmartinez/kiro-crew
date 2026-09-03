@@ -12,3 +12,9 @@ docker-compose.override.yml
 
 # Backups may contain credentials and persistent agent state
 *-home-backup-*.tgz
+
+# Generated visual evidence; keep source diagrams and final HTML/JSON only
+*.visual-check.*
+
+# Local service-account inventories may contain sensitive metadata
+*ServiceAccounts*.xlsx
