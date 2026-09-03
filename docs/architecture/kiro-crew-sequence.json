@@ -21,7 +21,7 @@
     { "id": "crew", "type": "backend", "label": "Dashboard", "sublabel": ":5477 / kiro-b" },
     { "id": "kiro-b", "type": "backend", "label": "kiro-b", "sublabel": "internal :5476" },
     { "id": "mount", "type": "cloud", "label": "Mount proxy", "sublabel": "Docker Desktop / WSL" },
-    { "id": "project", "type": "external", "label": "Host tree", "sublabel": "Factib" },
+    { "id": "project", "type": "external", "label": "Host tree", "sublabel": "sample-project" },
     { "id": "error", "type": "security", "label": "I/O boundary", "sublabel": "errno 5" }
   ],
   "segments": [
@@ -35,7 +35,7 @@
     { "from": "wsl", "to": "crew", "y": 264, "label": "route dashboard request", "variant": "default" },
     { "from": "crew", "to": "kiro-b", "y": 306, "label": "start or reuse session", "variant": "emphasis" },
     { "from": "kiro-b", "to": "mount", "y": 386, "label": "resolve /home/kirocrew/projects", "variant": "default" },
-    { "from": "mount", "to": "project", "y": 428, "label": "read / write Factib", "variant": "emphasis" },
+    { "from": "mount", "to": "project", "y": 428, "label": "read / write sample-project", "variant": "emphasis" },
     { "from": "project", "to": "mount", "y": 470, "label": "files and metadata", "variant": "return" },
     { "from": "mount", "to": "kiro-b", "y": 512, "label": "project view", "variant": "return" },
     { "from": "kiro-b", "to": "crew", "y": 554, "label": "ACP result", "variant": "return" },

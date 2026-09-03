@@ -10,8 +10,8 @@ Kiro Crew corre dos instancias: `kiro-a` y `kiro-b`. Originalmente compartían u
 único `GH_TOKEN`, lo que forzaba a una misma cuenta de GitHub para ambas y
 perdía el sentido de separar instancias por cliente/cuenta. El usuario necesita:
 
-- `kiro-a` autenticado como `Jerson-Martinez-JEM0925`.
-- `kiro-b` autenticado como `jersonmartinez`.
+- `kiro-a` autenticado como `your-gh-user-a`.
+- `kiro-b` autenticado como `your-gh-user-b`.
 
 Además, el agente dentro del contenedor debe poder ejecutar `gh` y `git`
 operaciones sin una configuración manual que se repita en cada reinicio.
