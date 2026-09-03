@@ -1,5 +1,7 @@
 # Seguridad y límites operativos
 
+[English version](../en/security.md)
+
 ## Modelo de confianza
 
 Este proyecto está diseñado para desarrollo local. KiroCrew puede leer y modificar los proyectos montados, ejecutar procesos dentro de su contenedor y comunicarse con el Docker Engine mediante `/var/run/docker.sock`.
