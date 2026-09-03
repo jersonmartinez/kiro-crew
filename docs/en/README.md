@@ -342,6 +342,30 @@ The list is controlled by `KIROCREW_MASK_DIRS` in `.env`. `.git`, `build`, and `
 
 `docker-compose.override.yml` is a generated, host-specific file; it is in `.gitignore` and must not be edited manually.
 
+## SSH and GCP IAP
+
+The runtime image includes the OpenSSH client (`openssh-client`) in both Kiro containers. This enables `gcloud compute ssh`, including IAP-tunneled connections, from ACP shells without running an SSH server inside KiroCrew.
+
+Verify the client and the Google Cloud SSH command surface with:
+
+```bash
+make ssh-test
+# Or target one instance:
+make ssh-test INSTANCE=kiro-b
+```
+
+Example:
+
+```bash
+gcloud compute ssh VM_NAME \
+  --zone ZONE \
+  --project PROJECT_ID \
+  --tunnel-through-iap \
+  --command 'COMMAND'
+```
+
+The remote VM must allow the authenticated GCP identity to connect and the IAP/SSH prerequisites must be configured in Google Cloud. Do not place passwords, private keys, or command output containing secrets in Git or documentation.
+
 ## GitHub identity per instance
 
 Each instance authenticates with its own GitHub account (ADR-010). Configure the PATs in `.env`:

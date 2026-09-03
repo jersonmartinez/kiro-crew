@@ -38,6 +38,7 @@ Both dashboards bind only to `127.0.0.1`. The project tree is available inside e
 - [English security guide](docs/en/security.md) · [Guía de seguridad en español](docs/es/security.md)
 - [Architecture diagrams](docs/architecture/)
 - [Architecture decision records](docs/en/decisions/)
+- [SSH and GCP IAP guide](docs/en/README.md#ssh-and-gcp-iap)
 
 The English documentation is canonical for the repository. The Spanish documentation mirrors the same operational and security guidance. Keep both language trees synchronized when behavior changes.
 
@@ -52,6 +53,7 @@ make shell-b         # Open a shell in Kiro B.
 make restart         # Rebuild/recreate the stack without deleting volumes.
 make backup          # Back up persistent agent volumes.
 make masks           # Regenerate dependency/cache tmpfs masks.
+make ssh-test        # Verify OpenSSH and gcloud compute ssh support.
 ```
 
 The optional Dockerized Make service is available through the `tools` profile:

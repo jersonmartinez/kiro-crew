@@ -31,4 +31,6 @@ jobs:
             gcloud --version >/dev/null
             kubectl version --client >/dev/null
             gke-gcloud-auth-plugin --version >/dev/null
+            command -v ssh >/dev/null
+            ssh -V 2>&1
           '
