@@ -11,7 +11,7 @@ After the real budget was applied, intermittent 120s timeouts coincided with fai
 
 ## Decision
 
-1. `Dockerfile.kirocrew` applies a second patch passing `timeout=_INIT_TIMEOUT` at the `initialize` call site. Both patches fail the build (`SystemExit`) when expected text is absent, so upstream changes fail loudly.
+1. `docker/Dockerfile.kirocrew` applies a second patch passing `timeout=_INIT_TIMEOUT` at the `initialize` call site. Both patches fail the build (`SystemExit`) when expected text is absent, so upstream changes fail loudly.
 2. Set operational `KIROCREW_ACP_INIT_TIMEOUT_SECS=240` in `.env` as a safeguard for concurrently loaded hosts.
 3. Mitigate contention by limiting unrelated containers (`docker update --cpus 1.0 <container>`) rather than stopping them.
 

@@ -9,7 +9,7 @@ Kiro Crew used a fixed 30-second timeout for the ACP `initialize` request. This 
 
 ## Decision
 
-Build a local image derived from the configured base image using `Dockerfile.kirocrew`. The Dockerfile replaces the fixed ACP runtime value with `KIROCREW_ACP_INIT_TIMEOUT_SECS`, defaulting to 120 seconds. Compose injects the same variable into the gateway for runtime visibility and verification. `make update` rebuilds the patch when the base image changes, while `kiro-a-home` / `kiro-b-home` remain intact.
+Build a local image derived from the configured base image using `docker/Dockerfile.kirocrew`. The Dockerfile replaces the fixed ACP runtime value with `KIROCREW_ACP_INIT_TIMEOUT_SECS`, defaulting to 120 seconds. Compose injects the same variable into the gateway for runtime visibility and verification. `make update` rebuilds the patch when the base image changes, while `kiro-a-home` / `kiro-b-home` remain intact.
 
 ## Alternatives Considered
 

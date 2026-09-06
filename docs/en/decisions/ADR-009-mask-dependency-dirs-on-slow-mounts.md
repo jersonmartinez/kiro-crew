@@ -11,7 +11,7 @@ Direct `kiro-cli acp --agent kirocrew` initialize with that repository as `cwd` 
 
 ## Decision
 
-Mask each dependency/cache directory with an empty `tmpfs`, so the container cannot see it and traversal cannot descend into it. `scripts/generate-mask-override.sh` uses `find -maxdepth 4 ... -prune` and emits `docker-compose.override.yml` with one `tmpfs` per match. Masks are container paths, making the generated file portable. `make masks` regenerates it; `up`, `restart`, and `update` require it. Defaults (`KIROCREW_MASK_DIRS`) are `node_modules`, `.venv`, `venv`, `vendor`, `target`, `__pycache__`, `.next`, `.nuxt`, `.docusaurus`, `.cache`, `.pytest_cache`, `.mypy_cache`, `.gradle`.
+Mask each dependency/cache directory with an empty `tmpfs`, so the container cannot see it and traversal cannot descend into it. `scripts/performance/generate-mask-override.sh` uses `find -maxdepth 4 ... -prune` and emits `docker-compose.override.yml` with one `tmpfs` per match. Masks are container paths, making the generated file portable. `make masks` regenerates it; `up`, `restart`, and `update` require it. Defaults (`KIROCREW_MASK_DIRS`) are `node_modules`, `.venv`, `venv`, `vendor`, `target`, `__pycache__`, `.next`, `.nuxt`, `.docusaurus`, `.cache`, `.pytest_cache`, `.mypy_cache`, `.gradle`.
 
 `.git`, `build`, and `dist` remain visible deliberately because their measured cost is marginal and the agent needs them.
 

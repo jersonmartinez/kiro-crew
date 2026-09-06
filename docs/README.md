@@ -14,6 +14,8 @@ English is the canonical documentation language. Spanish translations are mainta
 - [English architecture decision records](en/decisions/)
 - [Registros de decisiones en español](es/decisions/)
 - [Interactive architecture diagrams](architecture/)
+- [Engineering budgets](operations/budgets.md)
+- [Project security policy](../SECURITY.md) · [Security operations guide](en/security.md)
 - [SSH and GCP IAP operations](en/README.md#ssh-and-gcp-iap) · [Operaciones SSH e IAP de GCP](es/README.md#ssh-e-iap-de-gcp)
 
 ## Documentation rules

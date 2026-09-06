@@ -59,11 +59,12 @@ services:
       - tools
     build:
       context: .
-      dockerfile: Dockerfile.make
+      dockerfile: docker/Dockerfile.make
     working_dir: /workspace
     environment:
       COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-kiro-crew}
       PROJECTS_BASE: ${PROJECTS_BASE}
+      PROJECTS_MOUNT: /workspace/projects
       PROJECT_PROFILE: ${PROJECT_PROFILE:-dev}
       KIROCREW_MASK_DIRS: ${KIROCREW_MASK_DIRS:-}
       KIROCREW_MASK_MAX_DEPTH: ${KIROCREW_MASK_MAX_DEPTH:-4}

@@ -11,7 +11,7 @@ El flujo requerido es conectarse desde shells ACP a VMs de desarrollo mediante I
 
 ## Decisión
 
-Instalar el paquete Debian `openssh-client` en la imagen de runtime compartida que construye `Dockerfile.kirocrew`. Verificar `/usr/bin/ssh`, `ssh -V` y `gcloud compute ssh --help` en ambas instancias y en CI.
+Instalar el paquete Debian `openssh-client` en la imagen de runtime compartida que construye `docker/Dockerfile.kirocrew`. Verificar `/usr/bin/ssh`, `ssh -V` y `gcloud compute ssh --help` en ambas instancias y en CI.
 
 No instalar un servidor SSH, publicar un puerto SSH, añadir claves privadas a la imagen ni cambiar el entrypoint del contenedor. La autenticación remota seguirá controlada por la identidad GCP autenticada, los permisos IAM de Compute Engine/IAP y la configuración SSH de la VM.
 
