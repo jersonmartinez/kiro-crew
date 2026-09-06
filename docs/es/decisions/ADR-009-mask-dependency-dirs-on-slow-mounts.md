@@ -60,7 +60,7 @@ Enmascarar cada directorio de dependencias/caché del árbol de proyectos con un
 `tmpfs` vacío, de forma que el contenedor no lo vea y ningún recorrido descienda
 en él.
 
-- `scripts/generate-mask-override.sh` recorre `PROJECTS_BASE` con
+- `scripts/performance/generate-mask-override.sh` recorre `PROJECTS_BASE` con
   `find -maxdepth 4 ... -prune` y genera `docker-compose.override.yml` con un
   `tmpfs` por coincidencia. El `-prune` detiene el descenso en cada acierto, así
   que el propio generador es económico sobre el montaje lento.

@@ -11,7 +11,7 @@ Esto hacía que `gcloud auth list` apareciera vacío en los prompts aunque la in
 
 ## Decision
 
-Mantener `/home/kirocrew/.config/gcloud` disponible dentro de las sesiones ACP para ambas instancias de KiroCrew. El build de la imagen modifica el código fuente del launcher del sandbox en `Dockerfile.kirocrew`, eliminando ese directorio de las listas de directorios y archivos protegidos del launcher.
+Mantener `/home/kirocrew/.config/gcloud` disponible dentro de las sesiones ACP para ambas instancias de KiroCrew. El build de la imagen modifica el código fuente del launcher del sandbox en `docker/Dockerfile.kirocrew`, eliminando ese directorio de las listas de directorios y archivos protegidos del launcher.
 
 La autenticación sigue siendo local a cada instancia y persistente en `kiro-a-home` o `kiro-b-home`. El proyecto no incorpora credenciales en la imagen ni en el repositorio. El proyecto GCP activo se configura por separado en cada instancia.
 

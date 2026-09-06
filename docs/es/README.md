@@ -38,7 +38,7 @@ Las especificaciones JSON están junto a cada HTML; la evidencia generada del na
 
 ## Autenticación GCP dentro de ACP
 
-`Dockerfile.kirocrew` conserva la configuración `gcloud` de cada instancia y permite que los shells ACP utilicen `/home/kirocrew/.config/gcloud`. El login debe realizarse por separado en cada volumen persistente (`kiro-a-home` y `kiro-b-home`):
+`docker/Dockerfile.kirocrew` conserva la configuración `gcloud` de cada instancia y permite que los shells ACP utilicen `/home/kirocrew/.config/gcloud`. El login debe realizarse por separado en cada volumen persistente (`kiro-a-home` y `kiro-b-home`):
 
 ```bash
 docker compose exec -it kiro-a gcloud auth login
@@ -79,13 +79,19 @@ Desde WSL2, en el directorio del proyecto:
 ```bash
 cp .env.example .env
 # Edita PROJECTS_BASE si quieres usar repositorios fuera de ./projects
-docker compose up -d
+make up
+```
+
+Si Make no está instalado en WSL, usa el helper Dockerizado:
+
+```bash
+docker compose --profile tools run --rm make up
 ```
 
 Los servicios `kiro-a-config` y `kiro-b-config` aplican automáticamente los valores seguros de
 concurrencia para Knowledge en sus respectivos volúmenes persistentes antes de iniciar Kiro A y Kiro B.
 No borra sesiones, memoria, credenciales ni fuentes existentes. Ambas instancias se construyen
-localmente desde `Dockerfile.kirocrew` sobre la imagen base configurada, para mantener un timeout
+localmente desde `docker/Dockerfile.kirocrew` sobre la imagen base configurada, para mantener un timeout
 ACP de initialize reproducible.
 
 ### Bootstrap automático de Kiro CLI
@@ -217,8 +223,8 @@ El montaje de todo el directorio es práctico para un bootstrap. Si necesitas me
 Para generar un bloque para un proyecto concreto:
 
 ```bash
-./scripts/add-project.sh demo-app
-./scripts/add-project.sh demo-app /absolute/path/to/demo-app
+./scripts/project/add-project.sh demo-app
+./scripts/project/add-project.sh demo-app /absolute/path/to/demo-app
 ```
 
 El helper valida el nombre y que el directorio exista. Solo imprime el bloque; no modifica automáticamente el Compose para evitar cambios accidentales.
@@ -322,7 +328,7 @@ por lotes.
 
 El error `Request initialize timed out after 30s` ocurre durante el handshake ACP,
 antes de procesar el mensaje. El runtime local construido por
-`Dockerfile.kirocrew` eleva ese presupuesto a `KIROCREW_ACP_INIT_TIMEOUT_SECS`
+`docker/Dockerfile.kirocrew` eleva ese presupuesto a `KIROCREW_ACP_INIT_TIMEOUT_SECS`
 (120 segundos por defecto) y lo aplica en el call site de `initialize`
 (ver ADR-006 y ADR-008). No confundirlo con `chat_turn_timeout_secs`, que
 controla la duración del turno después de inicializar la sesión.
@@ -382,6 +388,30 @@ Windows ni sobrevive al reinicio.
 
 `docker-compose.override.yml` es un archivo generado y específico del host; está
 en `.gitignore` y no debe editarse a mano.
+
+## SSH e IAP de GCP
+
+La imagen de runtime incluye el cliente OpenSSH (`openssh-client`) en ambos contenedores de Kiro. Esto habilita `gcloud compute ssh`, incluidas las conexiones tunelizadas por IAP, desde shells ACP sin ejecutar un servidor SSH dentro de KiroCrew.
+
+Verifica el cliente y la superficie del comando SSH de Google Cloud con:
+
+```bash
+make ssh-test
+# O apunta a una instancia:
+make ssh-test INSTANCE=kiro-b
+```
+
+Ejemplo:
+
+```bash
+gcloud compute ssh VM_NAME \
+  --zone ZONE \
+  --project PROJECT_ID \
+  --tunnel-through-iap \
+  --command 'COMMAND'
+```
+
+La VM remota debe permitir la conexión a la identidad GCP autenticada y deben estar configurados los requisitos de IAP/SSH en Google Cloud. No coloques contraseñas, claves privadas ni salidas de comandos que contengan secretos en Git o en la documentación.
 
 ## Identidad de GitHub por instancia
 
@@ -519,7 +549,9 @@ docker compose exec kiro-b libreoffice --headless --version
 │   ├── shared.yml
 │   ├── kiro-a.yml
 │   └── kiro-b.yml
-├── Dockerfile.make
+├── docker/
+│   ├── Dockerfile.kirocrew
+│   └── Dockerfile.make
 ├── .dockerignore
 ├── .env.example
 ├── Makefile
@@ -554,7 +586,9 @@ Las configuraciones públicas deben usar placeholders y permanecer libres de rut
 
 ```bash
 ./tests/validate.sh
-docker compose --profile tools build make
+docker compose --env-file .env.example config --quiet
+docker compose --env-file .env.example --profile tools build make
+docker compose --env-file .env.example build kiro-a kiro-b
 git diff --check
 ```
 

@@ -50,7 +50,7 @@ services:
     image: ${KIROCREW_RUNTIME_IMAGE:-kirocrew-local:latest}
     build:
       context: .
-      dockerfile: Dockerfile.kirocrew
+      dockerfile: docker/Dockerfile.kirocrew
       args:
         BASE_IMAGE: ${KIROCREW_IMAGE}
     hostname: kiro-b

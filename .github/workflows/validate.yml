@@ -9,18 +9,29 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: validate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   static:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Validate Compose and repository files
         run: ./tests/validate.sh
       - name: Build Make helper image
         run: docker compose --env-file .env.example --profile tools build make
       - name: Build KiroCrew runtime image
         run: docker compose --env-file .env.example build kiro-a kiro-b
+      - name: Enforce runtime image size budget
+        run: |
+          size=$(docker image inspect kirocrew-local:latest --format '{{.Size}}')
+          max=4000000000
+          echo "Runtime image size: ${size} bytes; budget: ${max} bytes"
+          test "$size" -le "$max"
       - name: Verify GCP and GKE CLI tools
         run: |
           docker run --rm --entrypoint /bin/sh kirocrew-local:latest -ec '
@@ -31,4 +42,6 @@ jobs:
             gcloud --version >/dev/null
             kubectl version --client >/dev/null
             gke-gcloud-auth-plugin --version >/dev/null
+            command -v ssh >/dev/null
+            ssh -V 2>&1
           '

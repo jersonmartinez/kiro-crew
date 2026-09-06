@@ -38,7 +38,7 @@ The JSON specifications are next to each HTML file; generated browser evidence i
 
 ## GCP authentication inside ACP
 
-`Dockerfile.kirocrew` preserves each instance's `gcloud` configuration and allows ACP shells to use `/home/kirocrew/.config/gcloud`. Login must be performed separately in each persistent volume (`kiro-a-home` and `kiro-b-home`):
+`docker/Dockerfile.kirocrew` preserves each instance's `gcloud` configuration and allows ACP shells to use `/home/kirocrew/.config/gcloud`. Login must be performed separately in each persistent volume (`kiro-a-home` and `kiro-b-home`):
 
 ```bash
 docker compose exec -it kiro-a gcloud auth login
@@ -79,10 +79,16 @@ From WSL2, in the project directory:
 ```bash
 cp .env.example .env
 # Edit PROJECTS_BASE if you want to use repositories outside ./projects
-docker compose up -d
+make up
 ```
 
-The `kiro-a-config` and `kiro-b-config` services automatically apply safe Knowledge concurrency values in their respective persistent volumes before starting Kiro A and Kiro B. They do not delete sessions, memory, credentials, or existing sources. Both instances are built locally from `Dockerfile.kirocrew` on the configured base image, to keep a reproducible ACP initialize timeout.
+If Make is not installed in WSL, use the Dockerized helper instead:
+
+```bash
+docker compose --profile tools run --rm make up
+```
+
+The `kiro-a-config` and `kiro-b-config` services automatically apply safe Knowledge concurrency values in their respective persistent volumes before starting Kiro A and Kiro B. They do not delete sessions, memory, credentials, or existing sources. Both instances are built locally from `docker/Dockerfile.kirocrew` on the configured base image, to keep a reproducible ACP initialize timeout.
 
 ### Automatic Kiro CLI bootstrap
 
@@ -212,8 +218,8 @@ Mounting the entire directory is convenient for a bootstrap. If you need lower p
 To generate a block for a specific project:
 
 ```bash
-./scripts/add-project.sh demo-app
-./scripts/add-project.sh demo-app /absolute/path/to/demo-app
+./scripts/project/add-project.sh demo-app
+./scripts/project/add-project.sh demo-app /absolute/path/to/demo-app
 ```
 
 The helper validates the name and that the directory exists. It only prints the block; it does not automatically modify Compose, to prevent accidental changes.
@@ -309,7 +315,7 @@ docker exec kiro-a kirocrew config get knowledge.folder_ingest_chunk_budget
 
 Values can be changed in `.env` and reapplied with `make configure`. Lowering `knowledge.extraction_pool_size` or `knowledge.folder_ingest_chunk_budget` reduces maximum indexing speed, but prevents a large source from blocking ACP chat. Increasing Docker memory is unnecessary while the host has available memory; first limit concurrency and process sources in batches.
 
-The `Request initialize timed out after 30s` error occurs during the ACP handshake, before the message is processed. The local runtime built by `Dockerfile.kirocrew` raises that budget to `KIROCREW_ACP_INIT_TIMEOUT_SECS` (120 seconds by default) and applies it at the `initialize` call site (see ADR-006 and ADR-008). Do not confuse it with `chat_turn_timeout_secs`, which controls turn duration after the session initializes.
+The `Request initialize timed out after 30s` error occurs during the ACP handshake, before the message is processed. The local runtime built by `docker/Dockerfile.kirocrew` raises that budget to `KIROCREW_ACP_INIT_TIMEOUT_SECS` (120 seconds by default) and applies it at the `initialize` call site (see ADR-006 and ADR-008). Do not confuse it with `chat_turn_timeout_secs`, which controls turn duration after the session initializes.
 
 ```bash
 docker exec kiro-a kirocrew config get agent.session_start_timeout_secs
@@ -341,6 +347,30 @@ make mask-report PROJECT=example-org/sample-repo   # measure the tree
 The list is controlled by `KIROCREW_MASK_DIRS` in `.env`. `.git`, `build`, and `dist` are intentionally left visible because their cost is marginal and the agent needs them. Masked directories appear **empty** inside the container: if a workflow needs the real dependencies, remove that name from the list and regenerate. An `npm install` inside the container writes to the `tmpfs` (`KIROCREW_MASK_TMPFS_SIZE`, 1 GB by default) and is not shared with Windows or preserved across restarts.
 
 `docker-compose.override.yml` is a generated, host-specific file; it is in `.gitignore` and must not be edited manually.
+
+## SSH and GCP IAP
+
+The runtime image includes the OpenSSH client (`openssh-client`) in both Kiro containers. This enables `gcloud compute ssh`, including IAP-tunneled connections, from ACP shells without running an SSH server inside KiroCrew.
+
+Verify the client and the Google Cloud SSH command surface with:
+
+```bash
+make ssh-test
+# Or target one instance:
+make ssh-test INSTANCE=kiro-b
+```
+
+Example:
+
+```bash
+gcloud compute ssh VM_NAME \
+  --zone ZONE \
+  --project PROJECT_ID \
+  --tunnel-through-iap \
+  --command 'COMMAND'
+```
+
+The remote VM must allow the authenticated GCP identity to connect and the IAP/SSH prerequisites must be configured in Google Cloud. Do not place passwords, private keys, or command output containing secrets in Git or documentation.
 
 ## GitHub identity per instance
 
@@ -470,7 +500,9 @@ docker compose exec kiro-b libreoffice --headless --version
 │   ├── shared.yml
 │   ├── kiro-a.yml
 │   └── kiro-b.yml
-├── Dockerfile.make
+├── docker/
+│   ├── Dockerfile.kirocrew
+│   └── Dockerfile.make
 ├── .dockerignore
 ├── .env.example
 ├── Makefile
@@ -505,7 +537,9 @@ Public configurations must use placeholders and remain free of personal paths, p
 
 ```bash
 ./tests/validate.sh
-docker compose --profile tools build make
+docker compose --env-file .env.example config --quiet
+docker compose --env-file .env.example --profile tools build make
+docker compose --env-file .env.example build kiro-a kiro-b
 git diff --check
 ```
 

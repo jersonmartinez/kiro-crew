@@ -2,7 +2,7 @@
 
 PROJECT_PROFILE ?= dev
 
-.PHONY: up up-a up-b configure down restart logs logs-a logs-b shell shell-a shell-b status update masks mask-report docker-test node-test gh-test gcloud-test kubectl-test kiro-login kiro-login-a kiro-login-b access-test token token-a token-b backup project-up project-down
+.PHONY: up up-a up-b configure down restart logs logs-a logs-b shell shell-a shell-b status update masks mask-report docker-test node-test gh-test gh-identity gcloud-test kubectl-test ssh-test kiro-login kiro-login-a kiro-login-b access-test token token-a token-b backup project-up project-down
 
 INSTANCE ?= kiro-a
 
@@ -19,7 +19,7 @@ up-b: masks
 # PROJECTS_BASE are masked with empty tmpfs mounts (see ADR-009). Run this
 # after cloning a repo or installing dependencies on the host.
 masks:
-	sh scripts/generate-mask-override.sh
+	sh scripts/performance/generate-mask-override.sh
 
 # Report the traversal cost of a project tree as the container sees it.
 # Usage: make mask-report PROJECT=example-org/sample-repo
@@ -89,6 +89,10 @@ gcloud-test:
 kubectl-test:
 	docker compose exec $(INSTANCE) kubectl version --client
 	docker compose exec $(INSTANCE) gke-gcloud-auth-plugin --version
+
+ssh-test:
+	docker compose exec $(INSTANCE) sh -c 'command -v ssh >/dev/null && ssh -V'
+	docker compose exec $(INSTANCE) gcloud compute ssh --help >/dev/null
 
 # Confirm each instance is authenticated as its own GitHub account (ADR-010).
 gh-identity:

@@ -18,7 +18,7 @@ que el turno del usuario sea realmente lento. El síntoma visible era:
 ## Decision
 
 Construir una imagen local derivada de la imagen base configurada mediante
-`Dockerfile.kirocrew`. El Dockerfile sustituye el valor fijo del runtime ACP por
+`docker/Dockerfile.kirocrew`. El Dockerfile sustituye el valor fijo del runtime ACP por
 la variable `KIROCREW_ACP_INIT_TIMEOUT_SECS`, cuyo valor por defecto es 120
 segundos. Compose inyecta la misma variable en el gateway para que el valor sea
 visible y verificable en ejecución.

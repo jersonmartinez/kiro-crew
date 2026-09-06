@@ -16,9 +16,9 @@
 # portable across hosts even though the scan is host-specific.
 set -eu
 
-PROJECTS_MOUNT="${PROJECTS_MOUNT:-/workspace/projects}"
+PROJECTS_MOUNT="${PROJECTS_MOUNT:-${PROJECTS_BASE:-./projects}}"
 CONTAINER_PROJECTS="${CONTAINER_PROJECTS:-/home/kirocrew/projects}"
-OUT="${OUT:-/workspace/docker-compose.override.yml}"
+OUT="${OUT:-$(pwd)/docker-compose.override.yml}"
 MASK_DIRS="${KIROCREW_MASK_DIRS:-node_modules .venv venv vendor target __pycache__ .next .nuxt .docusaurus .cache .pytest_cache .mypy_cache .gradle}"
 MAX_DEPTH="${KIROCREW_MASK_MAX_DEPTH:-4}"
 MASK_SIZE="${KIROCREW_MASK_TMPFS_SIZE:-1g}"
@@ -54,7 +54,7 @@ tmp="${OUT}.tmp"
 {
   echo "# GENERATED FILE — do not edit by hand."
   echo "# Regenerate with: make masks"
-  echo "# Source: scripts/generate-mask-override.sh (see ADR-009)."
+  echo "# Source: scripts/performance/generate-mask-override.sh (see ADR-009)."
   echo "#"
   echo "# Masks $count dependency/cache directories found under PROJECTS_BASE so"
   echo "# project-tree walks never touch them on the slow Windows bind mount."

@@ -29,7 +29,7 @@ proyecto ni la indexación de Knowledge.
 
 ## Decision
 
-1. `Dockerfile.kirocrew` aplica un segundo parche que pasa
+1. `docker/Dockerfile.kirocrew` aplica un segundo parche que pasa
    `timeout=_INIT_TIMEOUT` en el call site de `initialize`. Ambos parches
    fallan el build (`SystemExit`) si el texto esperado no existe en la imagen
    base, de modo que un cambio upstream rompe ruidosamente en vez de degradar

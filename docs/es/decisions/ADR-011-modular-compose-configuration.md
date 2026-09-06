@@ -29,11 +29,9 @@ aplica las máscaras de directorios del host.
 5. Exponer operaciones individuales mediante targets del `Makefile` como
    `up-a`, `up-b`, `shell-a`, `shell-b`, `logs-a` y `logs-b`.
 
-La versión de Docker Compose instalada en este entorno (`v5.3.1`) soporta
-`include`. La documentación oficial describe `include` como el mecanismo para
-modularizar aplicaciones Compose y resolver las rutas relativas respecto de
-cada archivo incluido. Los entornos deben usar una versión moderna de Compose
-que incluya esta capacidad.
+La versión de Docker Compose instalada en este entorno soporta `include`.
+Los entornos deben usar una versión moderna de Compose v2 que incluya esta
+capacidad. Las rutas relativas se resuelven respecto de cada archivo incluido.
 
 ## Alternatives Considered
 
@@ -61,8 +59,8 @@ archivos representan subdominios de la misma aplicación Compose.
 - Es posible iniciar o inspeccionar Kiro A y Kiro B de forma individual desde
   el mismo punto de entrada.
 - Los volúmenes persistentes y las identidades de los contenedores no cambian.
-- Las rutas de build de los archivos incluidos usan el contexto del repositorio
-  mediante `context: ..`.
+- Las rutas de build de los archivos incluidos usan la raíz del repositorio como
+  contexto mediante `context: .`.
 - Requiere una versión moderna de Docker Compose con soporte para `include`.
 - Los archivos incluidos deben validarse con `docker compose config` para
   detectar conflictos o errores de interpolación antes de recrear contenedores.

@@ -15,7 +15,7 @@ Docker Compose configuration previously defined shared services, `kiro-a`, and `
 4. Retain `docker-compose.override.yml` as the host-generated override.
 5. Expose individual operations through Makefile targets `up-a`, `up-b`, `shell-a`, `shell-b`, `logs-a`, and `logs-b`.
 
-Compose `v5.3.1` in this environment supports `include`; environments need a modern Compose version with this capability. Relative paths resolve relative to each included file.
+The Docker Compose CLI in this environment supports `include`; environments need a modern Compose v2 release with this capability. Relative paths resolve relative to each included file.
 
 ## Alternatives Considered
 
@@ -23,4 +23,4 @@ A single file with profiles does not separate definitions or reduce duplication.
 
 ## Consequences
 
-`docker compose up -d` remains central; individual instances can be started or inspected from the same entry point. Persistent volumes and container identities do not change. Included build paths use repository context via `context: ..`. Validate included files with `docker compose config` before recreating containers.
+`docker compose up -d` remains central; individual instances can be started or inspected from the same entry point. Persistent volumes and container identities do not change. Included build paths use the repository root as the build context via `context: .`. Validate included files with `docker compose config` before recreating containers.
