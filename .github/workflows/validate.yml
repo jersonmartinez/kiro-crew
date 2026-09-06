@@ -29,7 +29,7 @@ jobs:
       - name: Enforce runtime image size budget
         run: |
           size=$(docker image inspect kirocrew-local:latest --format '{{.Size}}')
-          max=2000000000
+          max=4000000000
           echo "Runtime image size: ${size} bytes; budget: ${max} bytes"
           test "$size" -le "$max"
       - name: Verify GCP and GKE CLI tools

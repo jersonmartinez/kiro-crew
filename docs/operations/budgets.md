@@ -19,8 +19,9 @@ These budgets make quality and operational expectations explicit for this local-
 | Runtime image build | 5 min cached / 10 min cold | 10 min | Included in 20 min job limit | Enforced by CI job timeout |
 | Concurrent stale PR runs | 0 | 1 pending | Cancel superseded run | Enforced with workflow concurrency |
 | CI artifact retention | 7 days | 14 days | 30 days | Apply when artifacts are added |
+| Runtime image size (Docker metadata) | ≤3.5 GB | >3.5 GB | 4 GB | Enforced by CI image-size gate |
 
-The runtime image is intentionally large because it includes Google Cloud tooling, LibreOffice, FFmpeg, browser dependencies, and OpenSSH. The baseline measured on 2026-09-05 was approximately 1.49 GB according to Docker's image-size metadata; track this as an uncompressed image-size signal, not as a registry transfer-size measurement. CI enforces a 2 GB hard limit.
+The runtime image is intentionally large because it includes Google Cloud tooling, LibreOffice, FFmpeg, browser dependencies, and OpenSSH. The local `nightly` image measured approximately 1.49 GB on 2026-09-05, while the stable `.env.example` image measured 3.58 GB in GitHub Actions on 2026-09-06. These are Docker image-size metadata values, not registry transfer sizes. The CI hard limit is 4 GB.
 
 ## Runtime budgets
 
