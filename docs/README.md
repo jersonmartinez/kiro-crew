@@ -1,11 +1,11 @@
 # KiroCrew Documentation
 
-English is the canonical documentation language. Spanish translations are maintained in parallel and should be updated in the same change when behavior, security, or operational guidance changes.
+English is the default and canonical documentation language. Spanish translations are maintained in parallel and should be updated in the same change when behavior, security, or operational guidance changes.
 
-## Languages
+## Start here
 
-- [English documentation](en/README.md)
-- [Documentación en español](es/README.md)
+- [English documentation and operations guide](en/README.md)
+- [Documentación y guía de operaciones en español](es/README.md)
 
 ## Topics
 
