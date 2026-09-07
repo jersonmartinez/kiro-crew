@@ -2,7 +2,7 @@
 
 PROJECT_PROFILE ?= dev
 
-.PHONY: up up-a up-b configure down restart logs logs-a logs-b shell shell-a shell-b status update masks mask-report docker-test node-test gh-test gh-identity gcloud-test kubectl-test ssh-test kiro-login kiro-login-a kiro-login-b access-test token token-a token-b backup project-up project-down
+.PHONY: up up-a up-b configure down restart logs logs-a logs-b shell shell-a shell-b status update masks mask-report rtk-init docker-test node-test gh-test gh-identity gcloud-test kubectl-test ssh-test kiro-login kiro-login-a kiro-login-b access-test token token-a token-b backup project-up project-down
 
 INSTANCE ?= kiro-a
 
@@ -23,6 +23,9 @@ masks:
 
 # Report the traversal cost of a project tree as the container sees it.
 # Usage: make mask-report PROJECT=example-org/sample-repo
+rtk-init:
+	@if command -v rtk >/dev/null 2>&1; then rtk init --codex; else ~/.local/bin/rtk init --codex; fi
+
 mask-report:
 ifndef PROJECT
 	$(error PROJECT is required. Usage: make mask-report PROJECT=<relative-path>)

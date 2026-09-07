@@ -24,6 +24,11 @@ test -f scripts/project/add-project.sh
 test -f scripts/performance/generate-mask-override.sh
 test -f tests/validate.sh
 test -f LICENSE
+test -f AGENTS.md
+test -f RTK.md
+grep -F -- '@RTK.md' AGENTS.md >/dev/null
+grep -F -- 'Prefer RTK' RTK.md >/dev/null
+grep -F -- 'rtk-init' Makefile >/dev/null
 test -f CODE_OF_CONDUCT.md
 test -f CONTRIBUTING.md
 test -f SECURITY.md
