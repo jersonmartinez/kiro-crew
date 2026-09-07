@@ -2,7 +2,7 @@
 
 [English](../en/README.md) · [Índice de documentación](../README.md)
 
-Bootstrap público para ejecutar [KiroCrew](https://github.com/kirodotdev/kirocrew) con Docker Desktop y WSL2. Incluye persistencia para el estado del agente, Docker CLI + Compose dentro del contenedor, acceso configurable a proyectos de trabajo y un dashboard publicado únicamente en localhost.
+Bootstrap público para ejecutar [KiroCrew](https://github.com/kirodotdev/kirocrew) con Docker en GNU/Linux o con Docker Desktop y WSL2 en Windows. Incluye persistencia para el estado del agente, Docker CLI + Compose dentro del contenedor, acceso configurable a proyectos de trabajo y un dashboard publicado únicamente en localhost.
 
 La configuración no contiene rutas ni nombres de proyectos específicos de ningún entorno. El valor por defecto usa `./projects`; puedes cambiarlo en tu `.env` para reutilizar tus repositorios existentes.
 
@@ -50,12 +50,22 @@ Las credenciales no se incluyen en la imagen, el repositorio ni los archivos `.e
 
 ## Prerrequisitos
 
-- Docker Desktop instalado y ejecutándose.
-- Integración WSL2 habilitada para tu distribución Linux.
-- WSL2 con `docker` y `docker compose` disponibles.
-- Bash disponible en WSL2 para los scripts auxiliares.
-- No es necesario instalar `make` en el host; el servicio `make` lo proporciona dentro de Docker.
+### GNU/Linux
+
+- Una distribución GNU/Linux compatible.
+- Docker Engine con el plugin Compose v2.
+- Bash para los scripts auxiliares.
 - Un directorio para los proyectos que KiroCrew podrá leer y modificar.
+- En hosts sin AppArmor, define `KIROCREW_APPARMOR_OPT=no-new-privileges:false` en `.env` (consulta [Modelo de privilegios](#modelo-de-privilegios)).
+
+### Windows
+
+- Windows 10/11 con WSL2 habilitado.
+- Docker Desktop con el backend WSL2 y la integración habilitada para tu distribución Linux.
+- Una distribución WSL2 con `docker` y `docker compose` disponibles.
+- Bash disponible en WSL2 para los scripts auxiliares.
+
+En ambas plataformas no es necesario instalar `make` en el host; el servicio `make` lo proporciona dentro de Docker. En Windows, ejecuta los comandos del proyecto desde una terminal WSL2, no desde PowerShell.
 
 El socket Docker otorga acceso equivalente a root sobre el Docker Engine del host. Por eso esta configuración está orientada a desarrollo local y no debe exponerse directamente a Internet.
 
@@ -68,7 +78,13 @@ KiroCrew se ejecuta como el usuario no-root `kirocrew` (UID 1000). El Compose le
 - Montajes de proyectos y estado con escritura, necesarios para modificar código y conservar memoria.
 - La red `kirocrew-net` para comunicarse con stacks de proyectos que se conecten explícitamente.
 
-No se usa `privileged: true`, `sudo` ni `NET_ADMIN`. Para que el sandbox anidado de Kiro Crew funcione dentro de Docker Desktop/WSL2, Kiro A y Kiro B usan `seccomp:unconfined` y `apparmor:unconfined`; esto reduce el aislamiento y requiere mantener los dashboards limitados a localhost. El target `access-test` permite comprobar las capacidades del contenedor.
+No se usa `privileged: true`, `sudo` ni `NET_ADMIN`. Para que el sandbox anidado de Kiro Crew funcione, Kiro A y Kiro B usan `seccomp:unconfined` y, donde AppArmor está habilitado, `apparmor:unconfined`; esto reduce el aislamiento y requiere mantener los dashboards limitados a localhost. El target `access-test` permite comprobar las capacidades del contenedor.
+
+La opción de AppArmor proviene de `KIROCREW_APPARMOR_OPT`, cuyo valor por defecto es `apparmor:unconfined`. Los hosts donde AppArmor no está disponible rechazan cualquier perfil de AppArmor, por lo que `make up` falla allí salvo que la variable se establezca en el valor neutro `no-new-privileges:false`:
+
+```bash
+docker info --format '{{.SecurityOptions}}'   # muestra name=apparmor cuando está habilitado
+```
 
 `kirocrew-seccomp.json` se conserva como perfil experimental documentado, pero no se aplica por defecto: su compatibilidad debe probarse en cada combinación de Docker Desktop, WSL2 y arquitectura antes de reemplazar `unconfined`. Consulta [`security.md`](security.md) para el modelo de amenazas y la configuración de credenciales.
 

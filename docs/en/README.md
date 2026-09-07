@@ -56,6 +56,7 @@ Credentials are not included in the image, repository, or `.env.example`; they p
 - Docker Engine with the Compose v2 plugin.
 - Bash for helper scripts.
 - A directory for the projects KiroCrew may read and modify.
+- On hosts without AppArmor, `KIROCREW_APPARMOR_OPT=no-new-privileges:false` in `.env` (see [Privilege model](#privilege-model)).
 
 ### Windows
 
@@ -77,7 +78,13 @@ KiroCrew runs as the non-root user `kirocrew` (UID 1000). Compose grants it only
 - Writable project and state mounts, required to modify code and preserve memory.
 - The `kirocrew-net` network to communicate with project stacks that explicitly connect to it.
 
-`privileged: true`, `sudo`, and `NET_ADMIN` are not used. For Kiro Crew's nested sandbox to work inside Docker Desktop/WSL2, Kiro A and Kiro B use `seccomp:unconfined` and `apparmor:unconfined`; this reduces isolation and requires keeping the dashboards limited to localhost. The `access-test` target can check container capabilities.
+`privileged: true`, `sudo`, and `NET_ADMIN` are not used. For Kiro Crew's nested sandbox to work, Kiro A and Kiro B use `seccomp:unconfined` and, where AppArmor is enabled, `apparmor:unconfined`; this reduces isolation and requires keeping the dashboards limited to localhost. The `access-test` target can check container capabilities.
+
+The AppArmor option comes from `KIROCREW_APPARMOR_OPT`, which defaults to `apparmor:unconfined`. Hosts where AppArmor is unavailable reject any AppArmor profile, so `make up` fails there unless the variable is set to the neutral value `no-new-privileges:false`:
+
+```bash
+docker info --format '{{.SecurityOptions}}'   # lists name=apparmor when enabled
+```
 
 `kirocrew-seccomp.json` is retained as a documented experimental profile, but is not applied by default: its compatibility must be tested with each Docker Desktop, WSL2, and architecture combination before replacing `unconfined`. See [`security.md`](security.md) for the threat model and credential configuration.
 

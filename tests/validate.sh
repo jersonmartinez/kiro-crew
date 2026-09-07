@@ -26,9 +26,18 @@ test -f tests/validate.sh
 test -f LICENSE
 test -f AGENTS.md
 test -f RTK.md
-grep -F -- '@RTK.md' AGENTS.md >/dev/null
 grep -F -- 'Prefer RTK' RTK.md >/dev/null
-grep -F -- 'rtk-init' Makefile >/dev/null
+
+# Every file the agent instructions import must exist, and `make rtk-init` must
+# still resolve to the documented project initialization command.
+grep -F -- '@RTK.md' AGENTS.md >/dev/null
+for ref in $(grep -o '^@[A-Za-z0-9._/-]\{1,\}' AGENTS.md); do
+  ref=${ref#@}
+  test -f "$ref" || { echo "AGENTS.md references missing file: $ref" >&2; exit 1; }
+done
+command -v make >/dev/null 2>&1 || { echo "make is required" >&2; exit 1; }
+grep -E '^\.PHONY:.*[[:space:]]rtk-init([[:space:]]|$)' Makefile >/dev/null
+make -n rtk-init | grep -F -- 'rtk init --codex' >/dev/null
 test -f CODE_OF_CONDUCT.md
 test -f CONTRIBUTING.md
 test -f SECURITY.md

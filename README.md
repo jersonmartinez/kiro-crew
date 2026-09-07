@@ -34,6 +34,7 @@ Requirements:
 - A supported GNU/Linux distribution.
 - Docker Engine with the Compose v2 plugin.
 - Bash for the helper scripts.
+- On hosts without AppArmor (for example Fedora, RHEL, or Arch without the apparmor module), set `KIROCREW_APPARMOR_OPT=no-new-privileges:false` in `.env`; the default `apparmor:unconfined` is rejected by the runtime there. Check with `docker info --format '{{.SecurityOptions}}'`.
 - `make` is optional; the Dockerized `make` service is available through the `tools` profile.
 
 Run from the repository directory:
