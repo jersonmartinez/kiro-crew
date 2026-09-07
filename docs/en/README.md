@@ -1,8 +1,8 @@
 # KiroCrew Docker Compose Bootstrap
 
-[English](../en/README.md) · [Documentation index](../README.md)
+[English](../en/README.md) · [Español](../es/README.md) · [Documentation index](../README.md)
 
-Public bootstrap for running [KiroCrew](https://github.com/kirodotdev/kirocrew) with Docker Desktop and WSL2. It includes persistence for agent state, Docker CLI + Compose inside the container, configurable access to work projects, and a dashboard published only on localhost.
+Public bootstrap for running [KiroCrew](https://github.com/kirodotdev/kirocrew) with Docker on GNU/Linux or Docker Desktop with WSL2 on Windows. It includes persistence for agent state, Docker CLI + Compose inside the container, configurable access to work projects, and a dashboard published only on localhost.
 
 The configuration contains no environment-specific paths or project names. The default value uses `./projects`; you can change it in your `.env` to reuse existing repositories.
 
@@ -50,12 +50,21 @@ Credentials are not included in the image, repository, or `.env.example`; they p
 
 ## Prerequisites
 
-- Docker Desktop installed and running.
-- WSL2 integration enabled for your Linux distribution.
-- `docker` and `docker compose` available in WSL2.
-- Bash available in WSL2 for helper scripts.
-- `make` does not need to be installed on the host; the `make` service provides it inside Docker.
+### GNU/Linux
+
+- A supported GNU/Linux distribution.
+- Docker Engine with the Compose v2 plugin.
+- Bash for helper scripts.
 - A directory for the projects KiroCrew may read and modify.
+
+### Windows
+
+- Windows 10/11 with WSL2 enabled.
+- Docker Desktop with the WSL2 backend and integration enabled for your Linux distribution.
+- A WSL2 distribution with `docker` and `docker compose` available.
+- Bash available in WSL2 for helper scripts.
+
+For both platforms, `make` does not need to be installed on the host; the `make` service provides it inside Docker. On Windows, run the project commands from a WSL2 terminal, not from PowerShell.
 
 The Docker socket grants root-equivalent access to the host Docker Engine. Therefore, this configuration is intended for local development and must not be exposed directly to the Internet.
 
@@ -74,7 +83,7 @@ KiroCrew runs as the non-root user `kirocrew` (UID 1000). Compose grants it only
 
 ## Quick setup
 
-From WSL2, in the project directory:
+From a Linux terminal, or from a WSL2 terminal on Windows, in the project directory:
 
 ```bash
 cp .env.example .env

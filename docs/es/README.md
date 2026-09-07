@@ -74,7 +74,7 @@ No se usa `privileged: true`, `sudo` ni `NET_ADMIN`. Para que el sandbox anidado
 
 ## Setup rápido
 
-Desde WSL2, en el directorio del proyecto:
+Desde una terminal GNU/Linux, o desde una terminal WSL2 en Windows, en el directorio del proyecto:
 
 ```bash
 cp .env.example .env
