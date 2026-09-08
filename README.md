@@ -4,6 +4,8 @@
 
 ![KiroCrew local agent workspace](docs/assets/kirocrew-banner.svg)
 
+![KiroCrew runtime architecture](docs/assets/kirocrew-architecture.svg)
+
 Local bootstrap for running [KiroCrew](https://github.com/kirodotdev/kirocrew) with Docker and two isolated agent instances. It provides persistent agent state, Docker/Node/GitHub/Google Cloud tooling, configurable project mounts, and dashboards bound to localhost.
 
 ## Documentation
@@ -153,8 +155,12 @@ GCP, GitHub, and Kiro credentials must remain in ignored `.env` files or persist
 ├── Makefile                       # Repeatable operations
 ├── scripts/                       # Executable helpers
 │   ├── project/add-project.sh
-│   └── performance/generate-mask-override.sh
-├── tests/validate.sh              # Static repository validation
+│   ├── performance/generate-mask-override.sh
+│   ├── runtime/configure-instance.sh
+│   └── validation/validate-env.py
+├── tests/                         # Static and runtime validation
+│   ├── validate.sh
+│   └── runtime/smoke.sh
 ├── docs/                          # Operations, security, ADRs, assets, and diagrams
 │   ├── assets/kirocrew-banner.svg
 │   └── operations/budgets.md
@@ -177,9 +183,12 @@ Run these checks before submitting changes:
 
 ```bash
 ./tests/validate.sh
+python3 scripts/validation/validate-env.py .env.example
 docker compose --env-file .env.example config --quiet
 docker compose --env-file .env.example --profile tools build make
 docker compose --env-file .env.example build kiro-a kiro-b
+# With Docker Desktop/WSL2 and a configured .env:
+COMPOSE_ENV_FILE=.env ./tests/runtime/smoke.sh
 git diff --check
 ```
 

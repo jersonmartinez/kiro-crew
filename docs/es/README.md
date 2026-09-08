@@ -29,12 +29,14 @@ La configuración no contiene rutas ni nombres de proyectos específicos de ning
 
 Los diagramas interactivos generados con Archify se mantienen en [`../architecture/`](../architecture/):
 
-- [Arquitectura](../architecture/kiro-crew-architecture.html)
-- [Workflow de arranque, prompts y recuperación](../architecture/kiro-crew-workflow.html)
-- [Secuencia Devin → Docker Desktop → WSL → Kiro Crew](../architecture/kiro-crew-sequence.html)
-- [Dataflow de proyectos, mounts y configuración](../architecture/kiro-crew-dataflow.html)
+- [JSON fuente de arquitectura](../architecture/source/architecture.json)
+- [SVG de arquitectura runtime](../assets/kirocrew-architecture.svg)
+- [HTML interactivo de arquitectura](../architecture/html/architecture.html)
+- [Workflow de arranque, prompts y recuperación](../architecture/html/workflow.html)
+- [Secuencia Devin → Docker Desktop → WSL → Kiro Crew](../architecture/html/sequence.html)
+- [Dataflow de proyectos, mounts y configuración](../architecture/html/dataflow.html)
 
-Las especificaciones JSON están junto a cada HTML; la evidencia generada del navegador se mantiene fuera de Git. Los HTML son artefactos independientes: pueden abrirse localmente o servirse desde un servidor estático; GitHub puede mostrar el archivo como código en vez de ejecutar su contenido.
+Las especificaciones JSON se mantienen en `architecture/source/`; los artefactos SVG y HTML generados están en `architecture/html/` y `assets/`. GitHub muestra el SVG directamente; los HTML pueden mostrarse como código en vez de ejecutar su contenido.
 
 ## Autenticación GCP dentro de ACP
 
@@ -573,23 +575,31 @@ docker compose exec kiro-b libreoffice --headless --version
 ├── Makefile
 ├── projects/.gitkeep
 ├── scripts/
-│   ├── add-project.sh
-│   └── generate-mask-override.sh
-├── tests/validate.sh
+│   ├── project/add-project.sh
+│   ├── performance/generate-mask-override.sh
+│   ├── runtime/configure-instance.sh
+│   └── validation/validate-env.py
+├── tests/
+│   ├── validate.sh
+│   └── runtime/smoke.sh
 ├── .github/workflows/validate.yml
 └── docs/
     ├── README.md
     ├── en/
     ├── es/
+    ├── assets/
+    │   └── kirocrew-architecture.svg
     └── architecture/
-        ├── kiro-crew-architecture.html
-        ├── kiro-crew-architecture.json
-        ├── kiro-crew-workflow.html
-        ├── kiro-crew-workflow.json
-        ├── kiro-crew-sequence.html
-        ├── kiro-crew-sequence.json
-        ├── kiro-crew-dataflow.html
-        └── kiro-crew-dataflow.json
+        ├── source/
+        │   ├── architecture.json
+        │   ├── workflow.json
+        │   ├── sequence.json
+        │   └── dataflow.json
+        └── html/
+            ├── architecture.html
+            ├── workflow.html
+            ├── sequence.html
+            └── dataflow.html
 ```
 
 ## Licencia
@@ -602,9 +612,12 @@ Las configuraciones públicas deben usar placeholders y permanecer libres de rut
 
 ```bash
 ./tests/validate.sh
+python3 scripts/validation/validate-env.py .env.example
 docker compose --env-file .env.example config --quiet
 docker compose --env-file .env.example --profile tools build make
 docker compose --env-file .env.example build kiro-a kiro-b
+# Con Docker disponible y un .env configurado:
+COMPOSE_ENV_FILE=.env ./tests/runtime/smoke.sh
 git diff --check
 ```
 

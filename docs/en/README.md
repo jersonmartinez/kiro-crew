@@ -29,12 +29,14 @@ The configuration contains no environment-specific paths or project names. The d
 
 Interactive diagrams generated with Archify are maintained in [`../architecture/`](../architecture/):
 
-- [Architecture](../architecture/kiro-crew-architecture.html)
-- [Startup, prompts, and recovery workflow](../architecture/kiro-crew-workflow.html)
-- [Devin → Docker Desktop → WSL → Kiro Crew sequence](../architecture/kiro-crew-sequence.html)
-- [Projects, mounts, and configuration dataflow](../architecture/kiro-crew-dataflow.html)
+- [Architecture source JSON](../architecture/source/architecture.json)
+- [Runtime architecture SVG](../assets/kirocrew-architecture.svg)
+- [Interactive architecture HTML](../architecture/html/architecture.html)
+- [Startup, prompts, and recovery workflow](../architecture/html/workflow.html)
+- [Devin → Docker Desktop → WSL → Kiro Crew sequence](../architecture/html/sequence.html)
+- [Projects, mounts, and configuration dataflow](../architecture/html/dataflow.html)
 
-The JSON specifications are next to each HTML file; generated browser evidence is kept outside Git. The HTML files are standalone artifacts: they can be opened locally or served from a static server; GitHub may display the file as code instead of executing its contents.
+The JSON specifications are kept in `architecture/source/`; generated SVG and HTML artifacts are kept in `architecture/html/` and `assets/`. GitHub displays the SVG directly; HTML files may be shown as code instead of executing their contents.
 
 ## GCP authentication inside ACP
 
@@ -524,23 +526,31 @@ docker compose exec kiro-b libreoffice --headless --version
 ├── Makefile
 ├── projects/.gitkeep
 ├── scripts/
-│   ├── add-project.sh
-│   └── generate-mask-override.sh
-├── tests/validate.sh
+│   ├── project/add-project.sh
+│   ├── performance/generate-mask-override.sh
+│   ├── runtime/configure-instance.sh
+│   └── validation/validate-env.py
+├── tests/
+│   ├── validate.sh
+│   └── runtime/smoke.sh
 ├── .github/workflows/validate.yml
 └── docs/
     ├── README.md
     ├── en/
     ├── es/
+    ├── assets/
+    │   └── kirocrew-architecture.svg
     └── architecture/
-        ├── kiro-crew-architecture.html
-        ├── kiro-crew-architecture.json
-        ├── kiro-crew-workflow.html
-        ├── kiro-crew-workflow.json
-        ├── kiro-crew-sequence.html
-        ├── kiro-crew-sequence.json
-        ├── kiro-crew-dataflow.html
-        └── kiro-crew-dataflow.json
+        ├── source/
+        │   ├── architecture.json
+        │   ├── workflow.json
+        │   ├── sequence.json
+        │   └── dataflow.json
+        └── html/
+            ├── architecture.html
+            ├── workflow.html
+            ├── sequence.html
+            └── dataflow.html
 ```
 
 ## License
@@ -553,9 +563,12 @@ Public configurations must use placeholders and remain free of personal paths, p
 
 ```bash
 ./tests/validate.sh
+python3 scripts/validation/validate-env.py .env.example
 docker compose --env-file .env.example config --quiet
 docker compose --env-file .env.example --profile tools build make
 docker compose --env-file .env.example build kiro-a kiro-b
+# With Docker available and a configured .env:
+COMPOSE_ENV_FILE=.env ./tests/runtime/smoke.sh
 git diff --check
 ```
 

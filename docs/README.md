@@ -25,4 +25,4 @@ English is the default and canonical documentation language. Spanish translation
 - Do not include credentials, tokens, private paths, or environment-specific project names in documentation or generated artifacts.
 - Record significant security and architecture decisions as sequential ADRs in both language trees.
 - The English and Spanish decision trees currently contain ADR-001 through ADR-013.
-- Generated browser evidence is intentionally ignored; keep the Archify source JSON and final HTML diagrams only.
+- Generated browser evidence is intentionally ignored; keep Archify source JSON in `architecture/source/`, generated HTML in `architecture/html/`, and user-facing SVGs in `assets/`.

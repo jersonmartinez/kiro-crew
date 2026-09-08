@@ -3,7 +3,7 @@
   "diagram_type": "dataflow",
   "meta": {
     "title": "Kiro Crew Projects, Mounts, Configuration, and Runtime Dataflow",
-    "output": "kiro-crew-dataflow.html",
+    "output": "../html/dataflow.html",
     "viewBox": [1080, 900],
     "quality_profile": "showcase",
     "views": [

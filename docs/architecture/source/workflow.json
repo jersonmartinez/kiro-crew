@@ -3,7 +3,7 @@
   "diagram_type": "workflow",
   "meta": {
     "title": "Kiro Crew Startup, Prompt, and Recovery Workflow",
-    "output": "kiro-crew-workflow.html",
+    "output": "../html/workflow.html",
     "animation": "trace",
     "quality_profile": "showcase",
     "views": [

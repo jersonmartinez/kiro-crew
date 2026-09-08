@@ -3,7 +3,7 @@
   "diagram_type": "architecture",
   "meta": {
     "title": "Kiro Crew Runtime Architecture",
-    "output": "kiro-crew-architecture.html",
+    "output": "../html/architecture.html",
     "quality_profile": "showcase",
     "repository": { "url": "https://github.com/jersonmartinez/kiro-crew.git", "revision": "fcce2efe011decdf08012d1664f6b4fa35932a77" },
     "views": [
