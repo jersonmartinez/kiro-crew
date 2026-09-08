@@ -222,7 +222,7 @@ PROJECTS_BASE/<project-name>
   -> /home/kirocrew/projects/<project-name>
 ```
 
-For example, a repository located at `./projects/demo-app` appears inside KiroCrew as `/home/kirocrew/projects/demo-app`.
+For example, a repository located at `./projects/demo-app` appears inside KiroCrew as `/home/kirocrew/projects/demo-app`. This mount is also configured as an allowed root for subagent working directories, so delegated tasks can run from mounted projects without being rejected by the runtime policy.
 
 Mounting the entire directory is convenient for a bootstrap. If you need lower privilege, replace it in `compose/kiro-a.yml` and `compose/kiro-b.yml` with explicit mounts:
 

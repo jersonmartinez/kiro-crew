@@ -227,7 +227,7 @@ PROJECTS_BASE/<project-name>
   -> /home/kirocrew/projects/<project-name>
 ```
 
-Por ejemplo, un repositorio ubicado en `./projects/demo-app` aparecerá dentro de KiroCrew como `/home/kirocrew/projects/demo-app`.
+Por ejemplo, un repositorio ubicado en `./projects/demo-app` aparecerá dentro de KiroCrew como `/home/kirocrew/projects/demo-app`. Este montaje también está configurado como raíz permitida para los directorios de trabajo de subagentes, de modo que las tareas delegadas puedan ejecutarse dentro de los proyectos montados sin ser rechazadas por la política del runtime.
 
 El montaje de todo el directorio es práctico para un bootstrap. Si necesitas menor privilegio, reemplázalo en `compose/kiro-a.yml` y `compose/kiro-b.yml` por montajes explícitos:
 

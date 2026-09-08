@@ -15,6 +15,7 @@ services:
         kirocrew config set knowledge.max_sources "$${KIROCREW_KNOWLEDGE_MAX_SOURCES}"
         kirocrew config set knowledge.extraction_pool_size "$${KIROCREW_KNOWLEDGE_EXTRACTION_POOL_SIZE}"
         kirocrew config set knowledge.folder_ingest_chunk_budget "$${KIROCREW_KNOWLEDGE_FOLDER_CHUNK_BUDGET}"
+        kirocrew config set --local agent.subagent_cwd_allowed_roots '["/home/kirocrew/projects","~/workspace","~/workspaces","~/workplace","~/workplaces"]'
         # Git identity + GitHub credential helper for this instance (ADR-010).
         # Written into the persistent home volume, so it survives restarts and
         # never has to be re-run manually. `gh` itself needs no `auth login`:
@@ -85,6 +86,7 @@ services:
       GH_HOST: github.com
       KIROCREW_ALLOW_UNSANDBOXED: ${KIROCREW_ALLOW_UNSANDBOXED:-1}
       KIROCREW_ACP_INIT_TIMEOUT_SECS: ${KIROCREW_ACP_INIT_TIMEOUT_SECS:-120}
+      KIROCREW_SOURCE_PROVIDER_TIMEOUT_SECS: ${KIROCREW_SOURCE_PROVIDER_TIMEOUT_SECS:-120}
     volumes:
       - kiro-a-home:/home/kirocrew
       - docker-bin:/opt/docker-cli:ro

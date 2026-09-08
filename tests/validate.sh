@@ -54,9 +54,16 @@ grep -F -- 'kubectl' docker/Dockerfile.kirocrew >/dev/null
 grep -F -- 'openssh-client' docker/Dockerfile.kirocrew >/dev/null
 grep -F -- 'kiro_crew/sandbox.py' docker/Dockerfile.kirocrew >/dev/null
 grep -F -- 'Expected {expected} gcloud sandbox entries' docker/Dockerfile.kirocrew >/dev/null
+grep -F -- 'KIROCREW_SOURCE_PROVIDER_TIMEOUT_SECS' docker/Dockerfile.kirocrew >/dev/null
+grep -F -- 'KIROCREW_SOURCE_PROVIDER_TIMEOUT_SECS' compose/kiro-a.yml >/dev/null
+grep -F -- 'KIROCREW_SOURCE_PROVIDER_TIMEOUT_SECS' compose/kiro-b.yml >/dev/null
 grep -F -- 'compose/shared.yml' docker-compose.yml >/dev/null
 grep -F -- 'CLOUDSDK_CONFIG: /home/kirocrew/.config/gcloud' compose/kiro-a.yml >/dev/null
 grep -F -- 'CLOUDSDK_CONFIG: /home/kirocrew/.config/gcloud' compose/kiro-b.yml >/dev/null
+grep -F -- 'agent.subagent_cwd_allowed_roots' compose/kiro-a.yml >/dev/null
+grep -F -- 'agent.subagent_cwd_allowed_roots' compose/kiro-b.yml >/dev/null
+grep -F -- '/home/kirocrew/projects' compose/kiro-a.yml >/dev/null
+grep -F -- '/home/kirocrew/projects' compose/kiro-b.yml >/dev/null
 git diff --check
 
 touch kiro-a-home-backup-validation.tgz
