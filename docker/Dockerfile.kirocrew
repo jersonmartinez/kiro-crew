@@ -57,6 +57,14 @@ path.write_text(text.replace(call_old, call_new, 1))
 
 # Allow ACP shells to use the instance's gcloud configuration. Keep all other
 # credential paths protected by the sandbox launcher.
+provider_path = Path('/usr/local/lib/python3.12/site-packages/kiro_crew/dashboard/handlers/source_providers.py')
+provider_text = provider_path.read_text()
+provider_old = '_COMMAND_TIMEOUT_SECS = 30'
+provider_new = '_COMMAND_TIMEOUT_SECS = float(os.environ.get("KIROCREW_SOURCE_PROVIDER_TIMEOUT_SECS", "120"))'
+if provider_old not in provider_text:
+    raise SystemExit(f'Expected source provider timeout was not found in {provider_path}')
+provider_path.write_text(provider_text.replace(provider_old, provider_new, 1))
+
 sandbox_path = Path('/usr/local/lib/python3.12/site-packages/kiro_crew/sandbox.py')
 sandbox_text = sandbox_path.read_text()
 needle = '    ".config/gcloud",\n'

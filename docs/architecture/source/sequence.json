@@ -3,7 +3,7 @@
   "diagram_type": "sequence",
   "meta": {
     "title": "Prompt Request Across Devin, Docker Desktop, WSL, and Kiro Crew",
-    "output": "kiro-crew-sequence.html",
+    "output": "../html/sequence.html",
     "viewBox": [1080, 980],
     "column_fit": "spread",
     "animation": "trace",

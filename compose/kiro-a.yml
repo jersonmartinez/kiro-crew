@@ -4,31 +4,7 @@ services:
     depends_on:
       node-cli:
         condition: service_completed_successfully
-    entrypoint: ["/bin/sh", "-ec"]
-    command:
-      - |
-        if [ ! -x "$${HOME}/.local/bin/kiro-cli" ]; then
-          curl -fsSL https://cli.kiro.dev/install | bash
-        fi
-        kirocrew setup --agent-only
-        playwright-cli install --skills=agents --global
-        kirocrew config set knowledge.max_sources "$${KIROCREW_KNOWLEDGE_MAX_SOURCES}"
-        kirocrew config set knowledge.extraction_pool_size "$${KIROCREW_KNOWLEDGE_EXTRACTION_POOL_SIZE}"
-        kirocrew config set knowledge.folder_ingest_chunk_budget "$${KIROCREW_KNOWLEDGE_FOLDER_CHUNK_BUDGET}"
-        # Git identity + GitHub credential helper for this instance (ADR-010).
-        # Written into the persistent home volume, so it survives restarts and
-        # never has to be re-run manually. `gh` itself needs no `auth login`:
-        # it authenticates from GH_TOKEN on every invocation.
-        # Remove any stale manually-created gh host config so it cannot shadow
-        # the per-instance token injected via the environment.
-        rm -f /home/kirocrew/.config/gh/hosts.yml
-        git config --global --replace-all user.name "$${GIT_USER_NAME}"
-        git config --global --replace-all user.email "$${GIT_USER_EMAIL}"
-        git config --global --replace-all credential."https://github.com".helper "!/opt/gh-cli/gh auth git-credential"
-        git config --global --replace-all safe.directory '*'
-        if kiro-cli whoami >/dev/null 2>&1; then
-          touch "$${KIROCREW_HOME}/.kiro_cli_setup_complete"
-        fi
+    entrypoint: ["/bin/sh", "/usr/local/bin/configure-instance.sh"]
     environment:
       HOME: /home/kirocrew
       KIRO_HOME: /home/kirocrew/.kiro
@@ -45,6 +21,7 @@ services:
       - kiro-a-home:/home/kirocrew
       - node-bin:/opt/node-cli:ro
       - playwright-browsers:/opt/playwright-browsers:ro
+      - ./scripts/runtime/configure-instance.sh:/usr/local/bin/configure-instance.sh:ro
 
   kiro-a:
     image: ${KIROCREW_RUNTIME_IMAGE:-kirocrew-local:latest}
@@ -85,6 +62,7 @@ services:
       GH_HOST: github.com
       KIROCREW_ALLOW_UNSANDBOXED: ${KIROCREW_ALLOW_UNSANDBOXED:-1}
       KIROCREW_ACP_INIT_TIMEOUT_SECS: ${KIROCREW_ACP_INIT_TIMEOUT_SECS:-120}
+      KIROCREW_SOURCE_PROVIDER_TIMEOUT_SECS: ${KIROCREW_SOURCE_PROVIDER_TIMEOUT_SECS:-120}
     volumes:
       - kiro-a-home:/home/kirocrew
       - docker-bin:/opt/docker-cli:ro
