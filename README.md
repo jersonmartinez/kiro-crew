@@ -1,6 +1,10 @@
-# KiroCrew Docker Compose Bootstrap
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) · [Documentación en español](docs/es/README.md)
+<div align="center">
+  <h1>KiroCrew Docker Compose Bootstrap</h1>
+  <p>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
+  </p>
+  <p><a href="docs/es/README.md">Documentación en español</a></p>
+</div>
 
 ![KiroCrew local agent workspace](docs/assets/kirocrew-banner.svg)
 
