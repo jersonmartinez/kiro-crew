@@ -85,12 +85,25 @@ For better performance, keep the repository and active projects inside the WSL2 
 
 Both dashboards bind only to `127.0.0.1`. Projects are available inside each agent at `/home/kirocrew/projects`.
 
-Authenticate each Kiro instance when needed:
+## Authentication
+
+Run from the repository directory after creating `.env`:
 
 ```bash
-make kiro-login-a
-make kiro-login-b
+docker compose up -d
+
+docker compose exec -it kiro-a kiro-cli login --use-device-flow
+docker compose exec -it kiro-b kiro-cli login --use-device-flow
 ```
+
+Generate a dashboard token for the instance you want to open, then visit the printed URL:
+
+```bash
+docker compose exec kiro-a kirocrew token --ttl 2h
+docker compose exec kiro-b kirocrew token --ttl 2h
+```
+
+Use `http://localhost:5476` for Kiro A and `http://localhost:5477` for Kiro B.
 
 ## Daily operations
 
