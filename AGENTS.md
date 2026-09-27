@@ -7,5 +7,6 @@
 - Verify availability with `~/.local/bin/rtk --version` at the start of a session when this workflow is relevant; `source ~/.bashrc` may be used when the shell should resolve `rtk` by name.
 - In the Windows/MSYS environment, invoke `~/.local/bin/rtk`, the configured wrapper that delegates to the verified WSL2 installation.
 - Do not install or update RTK from unpinned arbitrary sources; use the official RTK release/install instructions and verify checksums when installing release artifacts.
+- If RTK is unavailable, stop and ask the user to install it using the official process and show the commands and output; do not install it autonomously.
 
 @RTK.md
