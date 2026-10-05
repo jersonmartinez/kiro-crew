@@ -70,6 +70,16 @@ def main() -> int:
                 raise ValueError(f"{key} must be an integer")
         if not re.fullmatch(r"[0-9]+[kmgt]", require(values, "KIROCREW_MASK_TMPFS_SIZE"), re.I):
             raise ValueError("KIROCREW_MASK_TMPFS_SIZE must look like 1g, 512m, or 2t")
+        min_level = values.get("KIROCREW_SANDBOX_MIN_LEVEL", "")
+        if min_level and min_level not in ("off", "standard", "cc", "strict"):
+            raise ValueError(
+                "KIROCREW_SANDBOX_MIN_LEVEL must be one of off, standard, cc, strict"
+            )
+        accept_risk = values.get("KIROCREW_AUTO_IMPROVEMENT_ACCEPT_UNSANDBOXED_RISK", "")
+        if accept_risk and accept_risk not in ("0", "1"):
+            raise ValueError(
+                "KIROCREW_AUTO_IMPROVEMENT_ACCEPT_UNSANDBOXED_RISK must be 0 or 1"
+            )
         print(f"env-validation-ok: {path}")
         return 0
     except (OSError, ValueError) as error:

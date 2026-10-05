@@ -418,6 +418,24 @@ Important:
 - Each instance pushes as its own account. Make sure the remote repository uses HTTPS (`https://github.com/...`) to use the `gh` helper.
 - If a token expires, change it in `.env` and restart the corresponding container.
 
+## Auto-improvement
+
+The bundled Auto-Improvement app measures a repository before it changes it: it calibrates a metric, proves the ruler, and then runs keep-or-revert cycles that file survivors as draft pull requests. Point it at a GitHub repository from the app panel in the dashboard (`http://localhost:5476` or `5477`).
+
+Two prerequisites:
+
+1. `kiro-cli` must be signed in on the instance (`make kiro-login-a` / `make kiro-login-b`).
+2. The provider-backed agent runner refuses to work while the gateway's effective sandbox is below `strict`. The failure surfaces as `AgentRunnerOffline: the run did no work because the provider-backed agent runner was refused because the gateway sandbox is 'auto'` — unattended commands driven by repository content must not reach on-disk credential stores, so the run records no work until the operator resolves the gate. Two supported opt-ins (ADR-014):
+
+| Variable in `.env` | Effect | Trade-off |
+| --- | --- | --- |
+| `KIROCREW_SANDBOX_MIN_LEVEL=strict` | Seeds `~/.kiro/crew/security_policy.json` with a `sandbox.min_level` governance floor; every agent spawn is clamped up to the strict, credential-hiding profile. | Gateway-wide: agent shells lose `~/.kube`, `~/.aws`, `~/.azure`, `~/.docker` and `~/.config/gh`. `gh` keeps working through `GH_TOKEN`, `gcloud` through the ADR-012 exception, and `~/.ssh` stays visible. Applies from the next gateway start — run `make restart`. |
+| `KIROCREW_AUTO_IMPROVEMENT_ACCEPT_UNSANDBOXED_RISK=1` | Records the app's explicit `acceptUnsandboxedAgentRisk` consent in `apps/auto-improvement/data/config.json`. | Scoped to auto-improvement runs only; member agents keep the `auto` sandbox, so repository-influenced instructions could read credential files present in the instance home. No restart needed. Set `0` to revoke a provisioned grant; empty leaves a dashboard-made choice untouched. |
+
+Both are reconciled by `kiro-a-config`/`kiro-b-config` on every `make up` and `make configure`. A `security_policy.json` the stack did not generate (a different `identity.issuer`, or a malformed file) is never modified; to adopt a hand-authored policy, leave `KIROCREW_SANDBOX_MIN_LEVEL` empty.
+
+Verify the seeded floor with `docker compose exec kiro-a kirocrew policy show`. Unblocking the gate only permits the runner to build — the app still enforces the push-disabled clone, per-run budgets, draft-only pull requests, and the READY-verdict gate before anything reaches GitHub.
+
 ## Node.js inside KiroCrew
 
 Node.js 22, npm, npx, and corepack are injected through the `node-cli` init service, without installing Node.js on the host:

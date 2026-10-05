@@ -70,6 +70,20 @@ grep -F -- 'CLOUDSDK_CONFIG: /home/kirocrew/.config/gcloud' compose/kiro-a.yml >
 grep -F -- 'CLOUDSDK_CONFIG: /home/kirocrew/.config/gcloud' compose/kiro-b.yml >/dev/null
 grep -F -- 'agent.subagent_cwd_allowed_roots' scripts/runtime/configure-instance.sh >/dev/null
 grep -F -- '/home/kirocrew/projects' scripts/runtime/configure-instance.sh >/dev/null
+
+# Auto-improvement provider-runner gate (ADR-014): both opt-ins must stay wired
+# through .env.example, both config services and the provisioning script.
+grep -F -- 'KIROCREW_SANDBOX_MIN_LEVEL' .env.example >/dev/null
+grep -F -- 'KIROCREW_AUTO_IMPROVEMENT_ACCEPT_UNSANDBOXED_RISK' .env.example >/dev/null
+grep -F -- 'KIROCREW_SANDBOX_MIN_LEVEL' compose/kiro-a.yml >/dev/null
+grep -F -- 'KIROCREW_SANDBOX_MIN_LEVEL' compose/kiro-b.yml >/dev/null
+grep -F -- 'KIROCREW_AUTO_IMPROVEMENT_ACCEPT_UNSANDBOXED_RISK' compose/kiro-a.yml >/dev/null
+grep -F -- 'KIROCREW_AUTO_IMPROVEMENT_ACCEPT_UNSANDBOXED_RISK' compose/kiro-b.yml >/dev/null
+grep -F -- 'security_policy.json' scripts/runtime/configure-instance.sh >/dev/null
+grep -F -- 'acceptUnsandboxedAgentRisk' scripts/runtime/configure-instance.sh >/dev/null
+grep -F -- 'kiro-crew-compose' scripts/runtime/configure-instance.sh >/dev/null
+test -f docs/en/decisions/ADR-014-auto-improvement-credential-gate.md
+test -f docs/es/decisions/ADR-014-auto-improvement-credential-gate.md
 git diff --check
 
 touch kiro-a-home-backup-validation.tgz
