@@ -7,7 +7,6 @@ fi
 
 kirocrew setup --agent-only
 playwright-cli install --skills=agents --global
-kirocrew config set knowledge.max_sources "${KIROCREW_KNOWLEDGE_MAX_SOURCES}"
 kirocrew config set knowledge.extraction_pool_size "${KIROCREW_KNOWLEDGE_EXTRACTION_POOL_SIZE}"
 kirocrew config set knowledge.folder_ingest_chunk_budget "${KIROCREW_KNOWLEDGE_FOLDER_CHUNK_BUDGET}"
 kirocrew config set --local agent.subagent_cwd_allowed_roots '["/home/kirocrew/projects","~/workspace","~/workspaces","~/workplace","~/workplaces"]'

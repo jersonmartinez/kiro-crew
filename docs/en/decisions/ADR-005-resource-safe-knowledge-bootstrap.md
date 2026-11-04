@@ -13,7 +13,6 @@ Local measurement showed approximately 435% CPU, 4.8 GiB RAM, and 416 processes 
 
 Add the idempotent `kirocrew-config` service to Compose. Before starting `kirocrew`, it writes these safe Knowledge values to the persistent volume:
 
-- `knowledge.max_sources=100`
 - `knowledge.extraction_pool_size=1`
 - `knowledge.folder_ingest_chunk_budget=25`
 

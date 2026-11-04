@@ -12,7 +12,6 @@ services:
       PATH: /opt/node-cli/bin:/home/kirocrew/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       NODE_PATH: /opt/node-cli/lib/node_modules
       PLAYWRIGHT_BROWSERS_PATH: /opt/playwright-browsers
-      KIROCREW_KNOWLEDGE_MAX_SOURCES: ${KIROCREW_KNOWLEDGE_MAX_SOURCES:-100}
       KIROCREW_KNOWLEDGE_EXTRACTION_POOL_SIZE: ${KIROCREW_KNOWLEDGE_EXTRACTION_POOL_SIZE:-1}
       KIROCREW_KNOWLEDGE_FOLDER_CHUNK_BUDGET: ${KIROCREW_KNOWLEDGE_FOLDER_CHUNK_BUDGET:-25}
       # Auto-improvement provider-runner gate (ADR-014). Empty = unchanged.

@@ -319,14 +319,13 @@ docker exec kiro-a kirocrew config set agent.default_agent default
 docker compose up -d --force-recreate kiro-a kiro-b
 ```
 
-The recommended local configuration uses `session.eager_spawn=false`, `agent.subagent_auto_max=8`, `taskrunner.max_parallel_steps=8`, and `mcp_gateway.max_backends=16`. For Knowledge, `kiro-a-config` and `kiro-b-config` apply `knowledge.max_sources=100`, `knowledge.extraction_pool_size=1`, and `knowledge.folder_ingest_chunk_budget=25`. These values are stored in the separate `kiro-a-home` and `kiro-b-home` volumes; the following commands inspect Kiro A:
+The recommended local configuration uses `session.eager_spawn=false`, `agent.subagent_auto_max=8`, `taskrunner.max_parallel_steps=8`, and `mcp_gateway.max_backends=16`. For Knowledge, `kiro-a-config` and `kiro-b-config` apply `knowledge.extraction_pool_size=1` and `knowledge.folder_ingest_chunk_budget=25`. These values are stored in the separate `kiro-a-home` and `kiro-b-home` volumes; the following commands inspect Kiro A:
 
 ```bash
 docker exec kiro-a kirocrew config get session.eager_spawn
 docker exec kiro-a kirocrew config get agent.subagent_auto_max
 docker exec kiro-a kirocrew config get taskrunner.max_parallel_steps
 docker exec kiro-a kirocrew config get mcp_gateway.max_backends
-docker exec kiro-a kirocrew config get knowledge.max_sources
 docker exec kiro-a kirocrew config get knowledge.extraction_pool_size
 docker exec kiro-a kirocrew config get knowledge.folder_ingest_chunk_budget
 ```
