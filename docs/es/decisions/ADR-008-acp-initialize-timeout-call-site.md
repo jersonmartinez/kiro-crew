@@ -68,3 +68,17 @@ arranques de minutos; el timeout alto es red de seguridad, no solución.
 - Al actualizar `KIROCREW_IMAGE`, el build valida que ambos parches sigan
   aplicando; si upstream ya pasa `timeout=_INIT_TIMEOUT`, el segundo parche
   fallará el build y deberá retirarse.
+
+## Enmienda (2026-11-03)
+
+Upstream ahora acota el handshake de forma nativa. En el digest `5fa64503…`
+de `KIROCREW_IMAGE` (`insider`, v0.12.0-rc.6), `kiro_crew/constants.py` define
+`INITIALIZE_TIMEOUT_SECS = 90.0` y `acp/runtime_spawn_launch.py` lo vincula como
+`_INITIALIZE_TIMEOUT` y pasa `timeout=timeout` a `_send_and_await` dentro de
+`_initialize_handshake`. El parche del call site se retiró; el Dockerfile ahora
+hace configurable por entorno la constante compartida
+(`KIROCREW_ACP_INIT_TIMEOUT_SECS`, 120 por defecto), lo que además mantiene
+`SubagentManager._startup_deadline` —segundo lector de la misma constante— en
+paso con el presupuesto del handshake. El build sigue fallando ruidosamente:
+aborta si la constante, el `import os` o la vinculación `_INITIALIZE_TIMEOUT`
+están ausentes.

@@ -24,3 +24,7 @@ Raising global `_REQUEST_TIMEOUT` was rejected because it slows detection of eve
 - The error reflects the configured value (for example `240s`); reaching it indicates real slowness and warrants checking `docker stats` and MCP probes.
 - A hung kiro-cli may take up to 240s to fail.
 - Updating `KIROCREW_IMAGE` validates both patches; if upstream already passes `timeout=_INIT_TIMEOUT`, the second patch fails and must be removed.
+
+## Amendment (2026-11-03)
+
+Upstream now bounds the handshake natively. In `KIROCREW_IMAGE` digest `5fa64503…` (`insider`, v0.12.0-rc.6) `kiro_crew/constants.py` defines `INITIALIZE_TIMEOUT_SECS = 90.0`, and `acp/runtime_spawn_launch.py` binds it as `_INITIALIZE_TIMEOUT` and passes `timeout=timeout` to `_send_and_await` inside `_initialize_handshake`. The call-site patch was therefore removed; the Dockerfile now makes the shared constant itself env-driven (`KIROCREW_ACP_INIT_TIMEOUT_SECS`, default 120), which also keeps `SubagentManager._startup_deadline` — a second reader of the same constant — in step with the handshake budget. The build still fails loudly: it aborts if the constant, the `os` import, or the `_INITIALIZE_TIMEOUT` binding is absent.

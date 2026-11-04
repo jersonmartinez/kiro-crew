@@ -106,7 +106,7 @@ jobs:
         run: |
           set -euo pipefail
           size="$(docker image inspect kirocrew-local:latest --format '{{.Size}}')"
-          max=4000000000
+          max=6000000000
           echo "Runtime image size: ${size} bytes; budget: ${max} bytes"
           test "$size" -le "$max"
 
