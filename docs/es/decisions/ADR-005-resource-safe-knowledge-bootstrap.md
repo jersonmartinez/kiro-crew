@@ -13,7 +13,6 @@ La medición local mostró aproximadamente 435% de CPU, 4.8 GiB de RAM y 416 pro
 
 Añadir el servicio idempotente `kirocrew-config` al Compose. Antes de iniciar `kirocrew`, escribe en el volumen persistente los valores seguros de Knowledge:
 
-- `knowledge.max_sources=100`
 - `knowledge.extraction_pool_size=1`
 - `knowledge.folder_ingest_chunk_budget=25`
 
