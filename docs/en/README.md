@@ -333,7 +333,7 @@ docker exec kiro-a kirocrew config get knowledge.folder_ingest_chunk_budget
 
 Values can be changed in `.env` and reapplied with `make configure`. Lowering `knowledge.extraction_pool_size` or `knowledge.folder_ingest_chunk_budget` reduces maximum indexing speed, but prevents a large source from blocking ACP chat. Increasing Docker memory is unnecessary while the host has available memory; first limit concurrency and process sources in batches.
 
-The `Request initialize timed out after 30s` error occurs during the ACP handshake, before the message is processed. The local runtime built by `docker/Dockerfile.kirocrew` raises that budget to `KIROCREW_ACP_INIT_TIMEOUT_SECS` (120 seconds by default) and applies it at the `initialize` call site (see ADR-006 and ADR-008). Do not confuse it with `chat_turn_timeout_secs`, which controls turn duration after the session initializes.
+The `Request initialize timed out after 30s` error occurs during the ACP handshake, before the message is processed. The local runtime built by `docker/Dockerfile.kirocrew` raises that budget to `KIROCREW_ACP_INIT_TIMEOUT_SECS` (120 seconds by default) by making the shared `INITIALIZE_TIMEOUT_SECS` constant env-driven (see ADR-006 and ADR-008). Do not confuse it with `chat_turn_timeout_secs`, which controls turn duration after the session initializes.
 
 ```bash
 docker exec kiro-a kirocrew config get agent.session_start_timeout_secs

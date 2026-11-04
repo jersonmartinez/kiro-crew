@@ -347,8 +347,8 @@ por lotes.
 El error `Request initialize timed out after 30s` ocurre durante el handshake ACP,
 antes de procesar el mensaje. El runtime local construido por
 `docker/Dockerfile.kirocrew` eleva ese presupuesto a `KIROCREW_ACP_INIT_TIMEOUT_SECS`
-(120 segundos por defecto) y lo aplica en el call site de `initialize`
-(ver ADR-006 y ADR-008). No confundirlo con `chat_turn_timeout_secs`, que
+(120 segundos por defecto) haciendo configurable por entorno la constante
+compartida `INITIALIZE_TIMEOUT_SECS` (ver ADR-006 y ADR-008). No confundirlo con `chat_turn_timeout_secs`, que
 controla la duración del turno después de inicializar la sesión.
 
 ```bash
