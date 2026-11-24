@@ -62,6 +62,8 @@ services:
       KIROCREW_ALLOW_UNSANDBOXED: ${KIROCREW_ALLOW_UNSANDBOXED:-1}
       KIROCREW_ACP_INIT_TIMEOUT_SECS: ${KIROCREW_ACP_INIT_TIMEOUT_SECS:-120}
       KIROCREW_SOURCE_PROVIDER_TIMEOUT_SECS: ${KIROCREW_SOURCE_PROVIDER_TIMEOUT_SECS:-120}
+      # Telemetry env pin (upstream default on since 0.13; empty = unset).
+      KIROCREW_TELEMETRY: ${KIROCREW_TELEMETRY:-}
     volumes:
       - kiro-b-home:/home/kirocrew
       - docker-bin:/opt/docker-cli:ro

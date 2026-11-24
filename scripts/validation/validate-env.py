@@ -80,6 +80,13 @@ def main() -> int:
             raise ValueError(
                 "KIROCREW_AUTO_IMPROVEMENT_ACCEPT_UNSANDBOXED_RISK must be 0 or 1"
             )
+        telemetry = values.get("KIROCREW_TELEMETRY", "")
+        if telemetry and telemetry.lower() not in (
+            "0", "1", "true", "false", "yes", "no", "on", "off"
+        ):
+            raise ValueError(
+                "KIROCREW_TELEMETRY must be one of 0, 1, true, false, yes, no, on, off"
+            )
         print(f"env-validation-ok: {path}")
         return 0
     except (OSError, ValueError) as error:

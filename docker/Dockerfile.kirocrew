@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/kirodotdev/kirocrew@sha256:5fa64503c111cfaf25e78a0fdcd6106f2b5b033b9043bf216cfac8ac456ada56
+ARG BASE_IMAGE=ghcr.io/kirodotdev/kirocrew@sha256:9b64a1bdc0bd72c86a6e59d0a03a69928d25a69800f8f8abe6e4eea458fb454a
 FROM ${BASE_IMAGE}
 
 USER root
