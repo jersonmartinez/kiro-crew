@@ -60,7 +60,7 @@ grep -F -- 'google-cloud-cli' docker/Dockerfile.kirocrew >/dev/null
 grep -F -- 'google-cloud-cli-gke-gcloud-auth-plugin' docker/Dockerfile.kirocrew >/dev/null
 grep -F -- 'kubectl' docker/Dockerfile.kirocrew >/dev/null
 grep -F -- 'openssh-client' docker/Dockerfile.kirocrew >/dev/null
-grep -F -- 'kiro_crew/sandbox.py' docker/Dockerfile.kirocrew >/dev/null
+grep -F -- 'kiro_crew/sandbox_tiers.py' docker/Dockerfile.kirocrew >/dev/null
 grep -F -- 'Expected {expected} gcloud sandbox entries' docker/Dockerfile.kirocrew >/dev/null
 grep -F -- 'KIROCREW_SOURCE_PROVIDER_TIMEOUT_SECS' docker/Dockerfile.kirocrew >/dev/null
 grep -F -- 'KIROCREW_SOURCE_PROVIDER_TIMEOUT_SECS' compose/kiro-a.yml >/dev/null
@@ -84,6 +84,12 @@ grep -F -- 'acceptUnsandboxedAgentRisk' scripts/runtime/configure-instance.sh >/
 grep -F -- 'kiro-crew-compose' scripts/runtime/configure-instance.sh >/dev/null
 test -f docs/en/decisions/ADR-014-auto-improvement-credential-gate.md
 test -f docs/es/decisions/ADR-014-auto-improvement-credential-gate.md
+
+# Telemetry env pin (upstream records usage data by default since 0.13): the
+# opt-out knob must stay wired through .env.example and both instance services.
+grep -F -- 'KIROCREW_TELEMETRY' .env.example >/dev/null
+grep -F -- 'KIROCREW_TELEMETRY' compose/kiro-a.yml >/dev/null
+grep -F -- 'KIROCREW_TELEMETRY' compose/kiro-b.yml >/dev/null
 git diff --check
 
 touch kiro-a-home-backup-validation.tgz
